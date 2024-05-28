@@ -1,6 +1,7 @@
 <template>
     <div>
-        <a type="button" class="btn btn-primary">Login</a>
+        <p>a</p>
+        <NuxtLink to="/">a</NuxtLink>
     </div>
 </template>
 
@@ -9,5 +10,5 @@
 </script>
 
 <style lang="scss" scoped>
-     @use "~/assets/styles/main.scss"
+
 </style>

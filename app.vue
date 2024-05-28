@@ -1,10 +1,14 @@
 <template>
   <div>
-    <NuxtPage />
+    <NuxtLayout :name="layout">
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+const layout = "default";
+
 const { $bs } = useNuxtApp();
 
 onMounted(() => {
@@ -18,5 +22,9 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-  @use "~/assets/styles/main.scss";
+*{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 </style>

@@ -1,13 +1,14 @@
 <template>
-    <div>
-        <navigation-page></navigation-page>
-    </div>
+    <PagesHomePage></PagesHomePage>
+    <PagesStoryPage></PagesStoryPage>
 </template>
 
 <script setup>
-    import NavigationPage from './NavigationPage.vue';
+   definePageMeta({
+    layout: 'default'
+   })
 </script>
-
+    
 <style lang="scss" scoped>
-
+ @import "~/assets/styles/main.scss";
 </style>

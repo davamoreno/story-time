@@ -27,9 +27,9 @@
             <div class="row">
                 <div class="col-6 col-lg-3 mb-25px" v-for="story in store.stories" :key="story.id">
                     <div class="story h-100">
-                        <a href="" class="story__image">
+                        <NuxtLink :to="`/stories/${story.id}`" ref="" class="story__image">
                             <img :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
-                        </a>
+                        </NuxtLink>
                         <div class="story__info">
                             <a href="" class="story__link">
                                 <h2 class="story__title">{{ story.title }}</h2>
@@ -55,12 +55,16 @@
 </template>
 
 <script setup>
-import { onMounted,ref,computed } from 'vue'
-import { useStoriesStore } from '~/stores/stories'
+import { onMounted,ref,computed,defineProps } from 'vue'
+import { useStories } from '~/stores/stories'
+
+const props = defineProps({
+  story: Object
+})
 
 const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id";
 
-const store = useStoriesStore()
+const store = useStories()
 const stories = computed(() => store.stories)
 const hasMore = computed(() => store.hasMore)
 
@@ -89,10 +93,6 @@ function formatDate(time) {
     
     return `${day} ${month} ${year}`;
 }
-
-onMounted(() => {
-  store.fetchStories()
-})
 
 const onLoadMore = () =>{
     store.fetchStories(true)

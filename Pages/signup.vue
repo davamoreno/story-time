@@ -95,41 +95,6 @@ const togglePasswordVisibility = () => {
 const togglePasswordConfirmVisibility = () => {
     passwordConfirmFieldType.value = passwordConfirmFieldType.value === 'password' ? 'text' : 'password';
 }
-
-const onSubmit = async (values : any) => {
-  loading.value = true;
-  error.value = '';
-  success.value = '';
-
-  try {
-    const response = await fetch('https://storytime-api.strapi.timedoor-js.web.id//api/auth/local/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: values.username,
-        email: values.email,
-        password: values.password
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Registration failed');
-    }
-
-    success.value = 'Registration successful!';
-    setTimeout(() => {
-      router.push('/');
-    }, 2000);
-  } catch (err) {
-    error.value = 'Terjadi kesalahan, mohon ulangi';
-  } finally {
-    loading.value = false;
-  }
-};
 </script>
 
 <style lang="scss" scoped>

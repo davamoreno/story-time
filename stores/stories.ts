@@ -1,14 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useNuxtApp } from '#app'
+import axios from 'axios';
 
-export const useStoriesStore = defineStore('stories', () => {
+export const useStories = defineStore('stories', () => {
   const stories = ref<any[]>([])
+  const storiesDetail = ref({})
   const keyword = ref('')
   const sortBy = ref('sort') // options: 'newest', 'az', 'za'
   const nuxtApp = useNuxtApp()
   const page = ref(0)
   const hasMore = ref(true)
+  const selectedStoryId = ref(null)
 
   const fetchStories = async (loadMore: boolean = false) => {
     try {
@@ -47,10 +50,28 @@ export const useStoriesStore = defineStore('stories', () => {
       } else {
         page.value += 1
       }
+      const newInfos = data.data;
+      for (const item of newInfos) {
+          const isExisting = stories.value.find(existing => existing.id === item.id);
+          if(!isExisting) {
+              stories.value.push(item);
+          }
+      }
 
     } catch (error) {
       console.error('Error fetching stories:', error)
       hasMore.value = false
+    }
+  }
+
+  const getStoriesDetail = async(id:any) => {
+    try {
+      const {data} = await axios.get(`/stories/${id}`);
+      storiesDetail.value = data.data;
+      selectedStoryId.value = id;
+    }
+    catch (err){
+        console.log(err)
     }
   }
 
@@ -64,5 +85,5 @@ export const useStoriesStore = defineStore('stories', () => {
     fetchStories()
   }
 
-  return { stories, keyword, sortBy, page, hasMore, fetchStories, setKeyword, setSortBy }
+  return { stories,storiesDetail, keyword, sortBy, page, hasMore,selectedStoryId, fetchStories, setKeyword, setSortBy, getStoriesDetail }
 })

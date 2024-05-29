@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useNuxtApp } from '#app';
+import { useRouter } from 'vue-router';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -13,7 +14,8 @@ export const useAuthStore = defineStore('auth', {
     }),
     actions: {
         async register() {
-          const { $axios } = useNuxtApp()
+          const { $axios } = useNuxtApp();
+          const router = useRouter();
           if (this.password !== this.passwordConfirm) {
             this.error = "Passwords do not match"
             return
@@ -21,14 +23,15 @@ export const useAuthStore = defineStore('auth', {
           try {
             const response = await $axios.post('/auth/local/register', {
               username: this.username,
-              name: this.name,
+              name:this.name,
               email: this.email,
               password: this.password,
             })
     
             console.log('Registration successful', response.data)
-            this.error = null
+            this.error = null;
             // Handle success, like redirecting the user or showing a success message
+            router.push('/');
           } catch (error: any) {
             this.error = error.response?.data?.message || error.message
           }

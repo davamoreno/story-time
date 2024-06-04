@@ -4,26 +4,26 @@
             <div class="card shadow atas">
                 <h4>Register</h4>
                 <div class="">
-                    <form @submit.prevent="store.register">
+                    <form @submit.prevent="register">
                         <div class="mt-2">
                             <label for="name">Name</label>
-                            <input v-model="store.name" class="input-group" id="name" type="text" name="name" placeholder="Enter name" @input="validateName" required/>
+                            <input v-model="form.name" class="input-group" id="name" type="text" name="name" placeholder="Enter name" required/>
                             <!-- <span v-if="nameError" class="text-danger">{{ nameError }}</span> -->
                         </div>
                         <div class="mt-2">
                             <label for="username">Username</label>
-                            <input v-model="store.username" id="username" class="input-group" type="text" name="username" placeholder="Enter username" @input="validateUsername" required/>
+                            <input v-model="form.username" id="username" class="input-group" type="text" name="username" placeholder="Enter username" required/>
                             <!-- <span v-if="usernameError" class="text-danger">{{ usernameError }}</span> -->
                         </div>
                         <div class="mt-2">
                             <label for="email">Email</label>
-                            <input v-model="store.email" class="input-group" id="email" type="email" name="email" placeholder="Enter email" @input="validateEmail" required/>
+                            <input v-model="form.email" class="input-group" id="email" type="email" name="email" placeholder="Enter email" required/>
                             <!-- <span v-if="emailError" class="text-danger">{{ emailError }}</span> -->
                         </div>
                         <div class="mt-2">
                             <label for="password">Password</label>
                             <div class="password-wrapper">
-                                <input v-model="store.password" id="password" class="input-group" :type="passwordFieldType" name="password" placeholder="Enter password" @input="validatePassword"/>
+                                <input v-model="form.password" id="password" class="input-group" :type="passwordFieldType" name="password" placeholder="Enter password" required/>
                                 <font-awesome-icon
                                 :icon="passwordFieldType === 'password' ? 'eye' : 'eye-slash'"
                                 @click="togglePasswordVisibility"
@@ -35,7 +35,7 @@
                         <div class="mt-1 mb-2">
                             <label for="passwordConfirm">Password Confirmation</label>
                             <div class="password-wrapper">
-                                <input class="input-group" id="passwordConfirm" :type="passwordConfirmFieldType" v-model="store.passwordConfirm" name="passwordConfirm" placeholder="Enter password confirmation" @input="validatePasswordConfirm"/>
+                                <input class="input-group" id="passwordConfirm" :type="passwordConfirmFieldType" v-model="form.passwordConfirm" name="passwordConfirm" placeholder="Enter password confirmation" required/>
                                 <font-awesome-icon
                                 :icon="passwordConfirmFieldType === 'password' ? 'eye' : 'eye-slash'"
                                 @click="togglePasswordConfirmVisibility"
@@ -44,9 +44,9 @@
                             </div>
                             <!-- <span v-if="passwordConfirmError" class="text-danger">{{ passwordConfirmError }}</span> -->
                         </div>
-                        <button type="submit" class="btn btn-dark submit">Register</button>
+                        <button type="submit" id="success" class="btn btn-dark submit">Register</button>
                     </form>
-                    <div v-if="error" class="text-danger mt-2">{{ error }}</div>
+                    <div v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</div>
                 </div>
                 <p class="mt-2">Already have account ? <NuxtLink to="/login">Login</NuxtLink></p>
             </div>
@@ -55,36 +55,27 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, computed } from 'vue';
-    import { useField, useForm } from 'vee-validate';
-    import { useAuthStore } from '~/stores/auth';
-    import * as yup from 'yup';
-    import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import { useAuthStore } from '~/stores/auth';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
-const store = useAuthStore()
-
-// const {name, username, email, password, passwordConfirm, error, register } = store;
-
-const schema = yup.object({
-    name: yup.string().required(),
-    username: yup.string().required(),
-    email: yup.string().required().email(),
-    password: yup.string().required().min(8).test('unique', 'Password is not unique', value => {
-    const usedPasswords = ['password123', '12345678', 'qwertyuiop', 'mamamama'];
-    return !usedPasswords.includes(value);}),
-    passwordConfirm: yup.string().oneOf([yup.ref('password')], 'password must match'),
-});
-const {handleSubmit,errors} = useForm({
-    validationSchema: schema,
-});
-
-const {value: nameField, errorMessage: nameError, handleBlur: validateName} = useField('name');
-const {value: usernameField, errorMessage: usernameError, handleBlur: validateUsername } = useField('username');
-const {value: emailField, errorMessage:emailError, handleBlur: validateEmail} = useField('email');
-const {value: passwordField, errorMessage:passwordError, handleBlur: validatePassword} = useField('password');
-const {value: passwordConfirmField,  errorMessage: passwordConfirmError, handleBlur: validatePasswordConfirm } = useField('passwordConfirm');
-
+const store = useAuthStore();
+const router = useRouter();
+interface RegisterForm{
+    username: string
+    name: string
+    email: string
+    password: string
+    passwordConfirm: string
+}
+const form = ref<RegisterForm>({
+    username: '',
+    name: '',
+    email: '',
+    password: '',
+    passwordConfirm: ''
+})
+const errorMessage = ref<string>('')
 const passwordFieldType = ref < 'password' | 'text' > ('password');
 const passwordConfirmFieldType = ref < 'password' | 'text' > ('password');
 
@@ -94,6 +85,19 @@ const togglePasswordVisibility = () => {
 
 const togglePasswordConfirmVisibility = () => {
     passwordConfirmFieldType.value = passwordConfirmFieldType.value === 'password' ? 'text' : 'password';
+}
+
+const register = async() => {
+    try{
+    await store.getRegister(form.value)
+    router.push('/')
+    }catch(err){
+        if(err instanceof Error){
+            errorMessage.value = err.message
+        } else {
+            errorMessage.value = "An unknown error occured."
+        }
+    }
 }
 </script>
 

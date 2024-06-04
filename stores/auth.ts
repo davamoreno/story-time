@@ -1,40 +1,94 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { useNuxtApp } from '#app';
-import { useRouter } from 'vue-router';
+import { defineStore } from 'pinia'
+import { useCookie } from '#app'
+import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', {
-    state: () => ({
-        username: '',
-        email: '',
-        password: '',
-        name:'',
-        passwordConfirm:'',
-        error: null as string | null,
-    }),
-    actions: {
-        async register() {
-          const { $axios } = useNuxtApp();
-          const router = useRouter();
-          if (this.password !== this.passwordConfirm) {
-            this.error = "Passwords do not match"
-            return
+  state: () => ({
+    token: null as string | null,
+    isLogin: false,
+    userProfile: {} as any,
+  }),
+
+  actions: {
+    async initialAuth() {
+      const tokenCookie = useCookie('token')
+      const token = tokenCookie.value
+      console.log("initialAuth: token from cookie", token)
+      if (token) {
+        this.token = token
+        this.isLogin = true
+        await this.getUserProfile()
+      }
+    },
+
+    async getRegister(payload: any) {
+      const authUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/auth/local/register"
+      try {
+        if (!payload.username || !payload.email || !payload.password || !payload.name) {
+          throw new Error("Data harus diisi semua !")
+        }
+        const response = await axios.post(authUrl, {
+          username: payload.username,
+          name: payload.name,
+          email: payload.email,
+          password: payload.password
+        })
+        const token = response.data.jwt
+        const tokenCookie = useCookie('token')
+        tokenCookie.value = token
+        console.log("getRegister: token", token)
+        this.token = token
+        this.isLogin = true
+        await this.getUserProfile()
+      } catch (err) {
+        console.log(err)
+      }
+    },
+
+    async getUserLogin(payload: any) {
+      const authUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/auth/local"
+      try {
+        if (!payload.identifier || !payload.password) {
+          throw new Error("Username Dan Password Harus Diisi !")
+        }
+        const response = await axios.post(authUrl, {
+          identifier: payload.identifier,
+          password: payload.password
+        })
+        const token = response.data.jwt
+        const tokenCookie = useCookie('token')
+        tokenCookie.value = token
+        console.log("getUserLogin: token", token)
+        this.token = token
+        this.isLogin = true
+        await this.getUserProfile()
+      } catch (err) {
+        console.log(err)
+      }
+    },
+
+    async getUserProfile() {
+      const profileUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/users/me"
+      try {
+        const response = await axios.get(profileUrl, {
+          headers: {
+            Authorization: `Bearer ${this.token}`
           }
-          try {
-            const response = await $axios.post('/auth/local/register', {
-              username: this.username,
-              name:this.name,
-              email: this.email,
-              password: this.password,
-            })
-    
-            console.log('Registration successful', response.data)
-            this.error = null;
-            // Handle success, like redirecting the user or showing a success message
-            router.push('/');
-          } catch (error: any) {
-            this.error = error.response?.data?.message || error.message
-          }
-        },
-    },     
-}) 
+        })
+        console.log("getUserProfile: profile data", response.data)
+        this.userProfile = response.data
+      } catch (err) {
+        console.log("Get Profile Error:", err)
+      }
+    },
+
+    async logout() {
+      const tokenCookie = useCookie('token')
+      tokenCookie.value = null
+      console.log("logout: token cleared")
+      this.token = null
+      this.isLogin = false
+      this.userProfile = {}
+    }
+  },
+})

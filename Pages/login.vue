@@ -4,26 +4,25 @@
             <div class="card shadow atas">
                 <h4>Login</h4>
                 <div>
-                <form @submit.prevent="handleSubmit(onSubmit)">
+                <form @submit.prevent="login">
                     <div>
-                        <label for="email">Email</label>
-                        <input v-model="email" placeholder="Input Email/Username" name="email" type="email" @input="validateEmail" />
-                        <span v-if="emailError" class="text-danger">{{ emailError }}</span>
+                        <label for="identifier">Username or Email</label>
+                        <input v-model="form.identifier" placeholder="Input Email/Username" id="identifier" type="text" required>
                     </div>
                     <div>
                         <label for="password">Password</label>
                         <div class="password-wrapper">
-                            <input :type="passwordFieldType" placeholder="Input Password" v-model="password" name="password" @input="validatePassword" />
+                            <input :type="passwordFieldType" placeholder="Input Password" v-model="form.password" name="password" id="password" required>
                             <font-awesome-icon
                             :icon="passwordFieldType === 'password' ? 'eye' : 'eye-slash'"
                             @click="togglePasswordVisibility"
                             class="password-icon"
                             />
                         </div>
-                        <span v-if="passwordError" class="text-danger">{{ passwordError }}</span>
                     </div>
-                    <a class="btn btn-dark" type="submit">Submit</a>
+                    <button class="btn btn-dark" type="submit">Submit</button>
                 </form>
+                <div v-if="errorMessage" class="text-danger">{{ errorMessage }}</div>
                 </div>
                 <p class="mt-2">Don't have an account yet ? <NuxtLink to="/signup">Register</NuxtLink></p>
             </div>
@@ -32,33 +31,43 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth';
 import { ref } from 'vue';
-import { useField, useForm } from 'vee-validate';
-import * as yup from 'yup';
+import { useRouter } from 'vue-router';
 
-const schema = yup.object({
-  email: yup.string().required().email(),
-  password: yup.string().required().min(8).test('unique', 'Password is not unique', value => {
-    const usedPasswords = ['password123', '12345678', 'qwertyuiop','mamamama'];
-    return !usedPasswords.includes(value);}),
-});
+const store = useAuthStore();
+const router = useRouter();
 
-const { handleSubmit, errors } = useForm({
-  validationSchema: schema,
-});
+interface LoginForm {
+    identifier: string
+    password: string
+}
 
-const { value: email, errorMessage: emailError, handleBlur: validateEmail } = useField('email');
-const { value: password, errorMessage: passwordError, handleBlur: validatePassword } = useField('password');
+const form = ref<LoginForm>({
+    identifier: '',
+    password: ''
+})
+const errorMessage = ref<string>('')
 
 const passwordFieldType = ref<'password' | 'text'>('password');
-
 const togglePasswordVisibility = () => {
   passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
 };
 
-const onSubmit = handleSubmit((values) => {
-  console.log(values);
-});
+const login = async () => {
+    try{
+        await store.getUserLogin(form.value);
+        router.push('/');
+    }
+    catch (err) {
+        if(err instanceof Error){
+            errorMessage.value = err.message
+        }
+        else{
+            errorMessage.value = "An unknown error occured."
+        }
+    }
+}
 </script>
 
 <style lang="scss" scoped>

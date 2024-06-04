@@ -4,6 +4,7 @@ import { errorMessages } from "vue/compiler-sfc";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled : true},
+  ssr: true,
   app:{
     head:{
       script:[{
@@ -18,6 +19,6 @@ export default defineNuxtConfig({
   components: true,
   css:['bootstrap/dist/css/bootstrap.min.css', '~/assets/styles/main.scss'],
   plugins: [
-    '~/plugins/vee-validate.ts', '~/plugins/fontawesome.ts' , '~/plugins/pinia.ts','~/plugins/axios.ts'
-  ],
+    '~/plugins/vee-validate.ts', '~/plugins/fontawesome.ts' , '~/plugins/pinia.ts',
+  ]
 });

@@ -5,9 +5,9 @@
                 <div class="row justify-content-between">
                     <div class="col-4">
                         <div role="group" class="input-group">
-                            <input class="form-control" type="text" placeholder="Search Story..." v-model="searchKeyword">
+                            <input class="form-control" type="text" id="searchInput" placeholder="Search Story..." v-model="keyword" @input="onKeywordChange"> 
                             <div class="input-group-append">
-                                <button type="button" class="btn btn-dark" @click="onSearch">
+                                <button type="button" class="btn btn-dark" >
                                     <svg width="10px" height="10px" class="svg" viewBox="0 0 0 0" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" stroke-width="2" stroke-linecap="box" stroke-linejoin="box"/>
                                     </svg>
                                 </button>
@@ -15,7 +15,7 @@
                         </div>
                     </div>
                     <div class="col-3">
-                        <select class="mb-3 costum-select" v-model="selectedSort" @change="onSort">
+                        <select class="mb-3 costum-select" v-model="sort" @change="onSortChange">
                             <option disabled="disabled" value="sort"> Sort </option><slot/>
                             <option value="newest"> Newest </option><slot/>
                             <option value="az"> A-Z </option><slot/>
@@ -25,10 +25,10 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-6 col-lg-3 mb-25px" v-for="story in store.stories" :key="story.id">
+                <div class="col-6 col-lg-3 mb-25px" v-for="story in stories" :key="story.id">
                     <div class="story h-100">
-                        <NuxtLink :to="`/stories/${story.id}`" ref="" class="story__image">
-                            <img :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
+                        <NuxtLink :to="`/posts/${story.id}`" ref="" class="story__image">
+                            <img v-if="story.cover_image" :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
                         </NuxtLink>
                         <div class="story__info">
                             <a href="" class="story__link">
@@ -36,52 +36,53 @@
                             </a>
                             <p class="story__desc">{{ story.content }}</p>
                             <div class="story__footer">
-                                <p class="story__sub-info">by {{ story.author.username }}</p>
+                                <p class="story__sub-info" v-if="story.author">by {{ story.author.username }}</p>
                                 <p class="story__sub-info">{{ formatDate(story.createdAt) }}</p>
                                 <button class="btn story__favorite shadow"><i class="fa-regular fa-bookmark"></i></button>
                             </div>
                             <div class="story__footer">
-                                <span class="m badge badge-secondary">{{ story.category.name }}</span>
+                                <span class="m badge badge-secondary" v-if="story.author">{{ story.category.name }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="d-flex justify-content-center mt-3">
-                <a class="btn btn-outline-dark" v-if="hasMore" @click="onLoadMore">Load More</a>
+                <a class="btn btn-outline-dark" v-if="hasMore" @click="loadMore">Load More</a>
             </div>
         </section>
     </div>    
 </template>
 
-<script setup>
-import { onMounted,ref,computed,defineProps } from 'vue'
+<script setup lang="ts">
+import { ref,computed } from 'vue'
 import { useStories } from '~/stores/stories'
+import { useNuxtApp } from '#app';
 
-const props = defineProps({
-  story: Object
-})
+const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
 
-const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id";
+const storyStore = useStories();
 
-const store = useStories()
-const stories = computed(() => store.stories)
-const hasMore = computed(() => store.hasMore)
+const stories = computed(() => storyStore.stories);
+const hasMore = computed(() => storyStore.hasMore);
 
-const searchKeyword = ref(store.keyword)
-const selectedSort = ref(store.sortBy)
+const keyword = ref<string>('');
+const sort = ref<string>('sort');
 
-onMounted(() => {
-  store.fetchStories()
-})
-
-const onSearch = () => {
-  store.setKeyword(searchKeyword.value)
+const onKeywordChange = () => {
+    storyStore.setKeyword(keyword.value);
+}
+const onSortChange = () => {
+    storyStore.setSortBy(sort.value);
 }
 
-const onSort = () => {
-  store.setSortBy(selectedSort.value)
-}    
+const loadMore = () => {
+    storyStore.fetchStories(true);
+}
+
+onMounted(() => {
+    storyStore.fetchStories()
+})
 
 function formatDate(time) {
     const date = new Date(time);
@@ -92,10 +93,6 @@ function formatDate(time) {
     const day = date.toLocaleString("default", { day: "2-digit" });
     
     return `${day} ${month} ${year}`;
-}
-
-const onLoadMore = () =>{
-    store.fetchStories(true)
 }
 </script>
 

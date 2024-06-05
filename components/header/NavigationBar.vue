@@ -7,12 +7,16 @@ const authStore = useAuthStore()
 const isLogin = computed(() => authStore.isLogin)
 const userProfile = computed(() => authStore.userProfile)
 
-onMounted(() => {
-  authStore.initialAuth()
+onMounted(async () => {
+  await authStore.initialAuth()
+  if (authStore.isLogin) {
+    await authStore.getUserProfile()
+  }
 })
 
 const logout = () => {
   authStore.logout()
+  console.log("Navbar: User logged out")
 }
 </script>
 

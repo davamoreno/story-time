@@ -1,8 +1,9 @@
-import { defineNuxtMiddleware } from '#app'
+import { defineNuxtRouteMiddleware, navigateTo } from '#app'
+import { useAuthStore } from '~/stores/auth'
 
-export default defineNuxtMiddleware(({ $cookies, redirect }) => {
-  const token = $cookies.get('authToken')
-  if (!token) {
-    return redirect('/login')
+export default defineNuxtRouteMiddleware(() => {
+  const store = useAuthStore()
+  if (!store.isLogin) {
+    return navigateTo('/login')
   }
 })

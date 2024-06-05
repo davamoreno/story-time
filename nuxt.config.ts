@@ -20,5 +20,5 @@ export default defineNuxtConfig({
   css:['bootstrap/dist/css/bootstrap.min.css', '~/assets/styles/main.scss'],
   plugins: [
     '~/plugins/vee-validate.ts', '~/plugins/fontawesome.ts' , '~/plugins/pinia.ts',
-  ]
+  ],
 });

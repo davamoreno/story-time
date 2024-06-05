@@ -11,13 +11,14 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async initialAuth() {
-      const tokenCookie = useCookie('token')
-      const token = tokenCookie.value
-      console.log("initialAuth: token from cookie", token)
+      const cookieToken = useCookie('token')
+      const token = cookieToken.value
       if (token) {
         this.token = token
         this.isLogin = true
-        await this.getUserProfile()
+      } else {
+        this.token = null
+        this.isLogin = false
       }
     },
 
@@ -25,21 +26,15 @@ export const useAuthStore = defineStore('auth', {
       const authUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/auth/local/register"
       try {
         if (!payload.username || !payload.email || !payload.password || !payload.name) {
-          throw new Error("Data harus diisi semua !")
+          throw new Error("Data harus diisi semua!")
         }
-        const response = await axios.post(authUrl, {
+        await axios.post(authUrl, {
           username: payload.username,
           name: payload.name,
           email: payload.email,
-          password: payload.password
+          password: payload.password,
         })
-        const token = response.data.jwt
-        const tokenCookie = useCookie('token')
-        tokenCookie.value = token
-        console.log("getRegister: token", token)
-        this.token = token
         this.isLogin = true
-        await this.getUserProfile()
       } catch (err) {
         console.log(err)
       }
@@ -49,19 +44,18 @@ export const useAuthStore = defineStore('auth', {
       const authUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/auth/local"
       try {
         if (!payload.identifier || !payload.password) {
-          throw new Error("Username Dan Password Harus Diisi !")
+          throw new Error("Username dan password harus diisi!")
         }
         const response = await axios.post(authUrl, {
           identifier: payload.identifier,
-          password: payload.password
+          password: payload.password,
         })
-        const token = response.data.jwt
-        const tokenCookie = useCookie('token')
-        tokenCookie.value = token
-        console.log("getUserLogin: token", token)
-        this.token = token
+        this.token = response.data.jwt
         this.isLogin = true
-        await this.getUserProfile()
+
+        // Save token to cookie
+        const cookieToken = useCookie('token')
+        cookieToken.value = this.token
       } catch (err) {
         console.log(err)
       }
@@ -72,10 +66,9 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await axios.get(profileUrl, {
           headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+            Authorization: `Bearer ${this.token}`,
+          },
         })
-        console.log("getUserProfile: profile data", response.data)
         this.userProfile = response.data
       } catch (err) {
         console.log("Get Profile Error:", err)
@@ -83,12 +76,12 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async logout() {
-      const tokenCookie = useCookie('token')
-      tokenCookie.value = null
-      console.log("logout: token cleared")
       this.token = null
       this.isLogin = false
-      this.userProfile = {}
-    }
+
+      // Clear token from cookie
+      const cookieToken = useCookie('token')
+      cookieToken.value = null
+    },
   },
 })

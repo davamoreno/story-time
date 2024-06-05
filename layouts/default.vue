@@ -13,11 +13,15 @@ import { useAuthStore } from '~/stores/auth'
 const authStore = useAuthStore()
 
 onMounted(() => {
-  authStore.initialAuth().then(() => {
-    console.log("Layout: isLogin", authStore.isLogin)
-    console.log("Layout: userProfile", authStore.userProfile)
-  })
+  authStore.initialAuth()
+
 })
+</script>
+
+<script lang="ts">
+export default{
+  middleware: 'auth'
+}
 </script>
 
 <style lang="scss" scoped>

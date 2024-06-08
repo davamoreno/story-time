@@ -1,101 +1,123 @@
 <template>
     <div class="container">
-        <section class="section-story">
-            <div class="home__filter">
-                <div class="row justify-content-between">
-                    <div class="col-4">
-                        <div role="group" class="input-group">
-                            <input class="form-control" type="text" id="searchInput" placeholder="Search Story..." v-model="keyword" @input="onKeywordChange"> 
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-dark" >
-                                    <svg width="10px" height="10px" class="svg" viewBox="0 0 0 0" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" stroke-width="2" stroke-linecap="box" stroke-linejoin="box"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <select class="mb-3 costum-select" v-model="sort" @change="onSortChange">
-                            <option disabled="disabled" value="sort"> Sort </option><slot/>
-                            <option value="newest"> Newest </option><slot/>
-                            <option value="az"> A-Z </option><slot/>
-                            <option value="za"> Z-A </option><slot/>
-                        </select>
-                    </div>
+      <section class="section-story">
+        <div class="home__filter">
+          <div class="row justify-content-between">
+            <div class="col-4">
+              <div role="group" class="input-group">
+                <input class="form-control" type="text" id="searchInput" placeholder="Search Story..." v-model="keyword" @keyup.enter="onKeywordChange">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-dark" @click="onKeywordChange">
+                    <svg width="10px" height="10px" class="svg" viewBox="0 0 0 0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" stroke-width="2" stroke-linecap="box" stroke-linejoin="box" />
+                    </svg>
+                  </button>
                 </div>
+              </div>
             </div>
-            <div class="row">
-                <div class="col-6 col-lg-3 mb-25px" v-for="story in stories" :key="story.id">
-                    <div class="story h-100">
-                        <NuxtLink :to="`/posts/${story.id}`" ref="" class="story__image">
-                            <img v-if="story.cover_image" :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
-                        </NuxtLink>
-                        <div class="story__info">
-                            <a href="" class="story__link">
-                                <h2 class="story__title">{{ story.title }}</h2>
-                            </a>
-                            <p class="story__desc">{{ story.content }}</p>
-                            <div class="story__footer">
-                                <p class="story__sub-info" v-if="story.author">by {{ story.author.username }}</p>
-                                <p class="story__sub-info">{{ formatDate(story.createdAt) }}</p>
-                                <button class="btn story__favorite shadow"><i class="fa-regular fa-bookmark"></i></button>
-                            </div>
-                            <div class="story__footer">
-                                <span class="m badge badge-secondary" v-if="story.author">{{ story.category.name }}</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="col-3">
+              <select class="mb-3 costum-select" v-model="sort" @change="onSortChange">
+                <option disabled value="sort">Sort</option>
+                <option value="newest">Newest</option>
+                <option value="a-z">A-Z</option>
+                <option value="z-a">Z-A</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6 col-lg-3 mb-25px" v-for="story in stories" :key="story.id">
+            <div class="story h-100">
+              <NuxtLink :to="`/posts/${story.id}`" class="story__image">
+                <img v-if="story.cover_image" :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
+              </NuxtLink>
+              <div class="story__info">
+                <h2 class="story__title">{{ story.title }}</h2>
+                <p class="story__desc">{{ story.content }}</p>
+                <div class="story__footer">
+                  <p class="story__sub-info" v-if="story.author.username">by {{ story.author.username }}</p>
+                  <p class="story__sub-info">{{ formatDate(story.createdAt) }}</p>
+                  <button class="btn story__favorite shadow"><i class="fa-regular fa-bookmark"></i></button>
                 </div>
+                <div class="story__footer">
+                  <span class="m badge badge-secondary" v-if="story.category">{{ story.category.name }}</span>
+                </div>
+              </div>
             </div>
-            <div class="d-flex justify-content-center mt-3">
-                <a class="btn btn-outline-dark" v-if="hasMore" @click="loadMore">Load More</a>
-            </div>
-        </section>
-    </div>    
+          </div>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <a class="btn btn-outline-dark" v-if="hasMore" @click="loadMore">Load More</a>
+        </div>
+      </section>
+    </div>
 </template>
+  
+  <script setup lang="ts">
+  import { ref, computed, onMounted } from 'vue'
+  import { useStories } from '~/stores/stories'
+  
+  const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
+  
+  const storyStore = useStories();
+  
+  const stories = computed(() => storyStore.stories);
+  const hasMore = computed(() => {
+    if(storyStore.page === storyStore.pageCount) {
+      return false
+    }
 
-<script setup lang="ts">
-import { ref,computed } from 'vue'
-import { useStories } from '~/stores/stories'
-import { useNuxtApp } from '#app';
-
-const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
-
-const storyStore = useStories();
-
-const stories = computed(() => storyStore.stories);
-const hasMore = computed(() => storyStore.hasMore);
-
-const keyword = ref<string>('');
-const sort = ref<string>('sort');
-
-const onKeywordChange = () => {
-    storyStore.setKeyword(keyword.value);
-}
-const onSortChange = () => {
-    storyStore.setSortBy(sort.value);
-}
-
-const loadMore = () => {
-    storyStore.fetchStories(true);
-}
-
-onMounted(() => {
-    storyStore.fetchStories()
-})
-
-function formatDate(time) {
-    const date = new Date(time);
+    return true
+  });
+  
+  const keyword = ref<string>('');
+  const sort = ref<string>('sort');
+  
+  const onKeywordChange = async () => {
+   const payload = {
+    page: 1,
+    keyword: keyword.value,
+    sort: sort.value
+   }
+   await storyStore.fetchStories(payload);
+  }
+  const onSortChange = async () => {
+    const payload = {
+      page: 1,
+      keyword: keyword.value,
+      sort: sort.value
+    }
+   await storyStore.fetchStories(payload);
+  }
+  
+  const loadMore = async () => {
+    const payload = {
+      keyword: keyword.value,
+      page: storyStore.page + 1,
+      sort: sort.value
+    }
     
-    // Get year, month, and day part from the date
+    await storyStore.fetchStories(payload);
+  }
+  
+  onMounted(() => {
+    const payload = {
+      page: 1
+    }
+    storyStore.fetchStories(payload)
+  })
+
+  
+  function formatDate(time: string) {
+    const date = new Date(time);
     const year = date.toLocaleString("default", { year: "2-digit" });
     const month = date.toLocaleString("default", { month: "short" });
     const day = date.toLocaleString("default", { day: "2-digit" });
-    
+  
     return `${day} ${month} ${year}`;
-}
-</script>
-
+  }
+  </script>
+  
 <style lang="scss" scoped>
 .remove-space, body, figure, h1, h2, h3, h4, h5, h6, html, p {
     margin: 0;

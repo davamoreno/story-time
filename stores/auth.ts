@@ -28,13 +28,16 @@ export const useAuthStore = defineStore('auth', {
         if (!payload.username || !payload.email || !payload.password || !payload.name) {
           throw new Error("Data harus diisi semua!")
         }
-        await axios.post(authUrl, {
+        const response = await axios.post(authUrl, {
           username: payload.username,
           name: payload.name,
           email: payload.email,
           password: payload.password,
         })
+        this.token = response.data.data.jwt
         this.isLogin = true
+        const cookieToken = useCookie('token')
+        cookieToken.value = this.token
       } catch (err) {
         console.log(err)
       }
@@ -50,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
           identifier: payload.identifier,
           password: payload.password,
         })
-        this.token = response.data.jwt
+        this.token = response.data.data.jwt
         this.isLogin = true
 
         // Save token to cookie
@@ -69,7 +72,7 @@ export const useAuthStore = defineStore('auth', {
             Authorization: `Bearer ${this.token}`,
           },
         })
-        this.userProfile = response.data
+        this.userProfile = response.data.data
       } catch (err) {
         console.log("Get Profile Error:", err)
       }

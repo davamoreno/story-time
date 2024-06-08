@@ -7,13 +7,17 @@ const authStore = useAuthStore()
 const isLogin = computed(() => authStore.isLogin)
 const userProfile = computed(() => authStore.userProfile)
 
-onMounted(async () => {
+const login = async () => {
   await authStore.initialAuth()
   if (authStore.isLogin) {
     await authStore.getUserProfile()
   }
-})
+}
+await login()
 
+onMounted(async () => {
+  
+})
 const logout = () => {
   authStore.logout()
   console.log("Navbar: User logged out")
@@ -34,7 +38,7 @@ const logout = () => {
       <div class="gap-3 d-flex ms-auto" v-else>
         <NuxtLink to="/user" class="btn btn-dark fs-6 rounded-0 px-4" type="submit">
           <i class="fa-regular fa-user me-1"></i>
-          <span class="navbar-text">{{ userProfile.username }}</span>
+          <span class="navbar-text text-white">{{ userProfile.username }}</span>
         </NuxtLink>
         <button class="btn btn-outline-dark fs-6 rounded-0 px-4" @click="logout">
           <i class="fa-solid fa-sign-out-alt me-1"></i>

@@ -1,3 +1,69 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useStories } from '~/stores/stories'
+
+const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
+
+const storyStore = useStories();
+
+const stories = computed(() => storyStore.stories);
+const hasMore = computed(() => {
+  if(storyStore.page === storyStore.pageCount) {
+    return false
+  }
+
+  return true
+});
+
+const keyword = ref<string>('');
+const sort = ref<string>('sort');
+
+const onKeywordChange = async () => {
+ const payload = {
+  page: 1,
+  keyword: keyword.value,
+  sort: sort.value
+ }
+ await storyStore.fetchStories(payload);
+}
+const onSortChange = async () => {
+  const payload = {
+    page: 1,
+    keyword: keyword.value,
+    sort: sort.value
+  }
+ await storyStore.fetchStories(payload);
+}
+
+const loadMore = async () => {
+  const payload = {
+    keyword: keyword.value,
+    page: storyStore.page + 1,
+    sort: sort.value
+  }
+  
+  await storyStore.fetchStories(payload);
+}
+
+onMounted(() => {
+  const payload = {
+    page: 1
+  }
+  storyStore.fetchStories(payload)
+})
+
+
+function formatDate(time: string) {
+  const date = new Date(time);
+  const year = date.toLocaleString("default", { year: "2-digit" });
+  const month = date.toLocaleString("default", { month: "short" });
+  const day = date.toLocaleString("default", { day: "2-digit" });
+
+  return `${day} ${month} ${year}`;
+}
+</script>
+
+
 <template>
     <div class="container">
       <section class="section-story">
@@ -28,11 +94,11 @@
         <div class="row">
           <div class="col-6 col-lg-3 mb-25px" v-for="story in stories" :key="story.id">
             <div class="story h-100">
-              <NuxtLink :to="`/posts/${story.id}`" class="story__image">
+              <NuxtLink :to="`/details/${story.id}`" class="story__image">
                 <img v-if="story.cover_image" :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
               </NuxtLink>
               <div class="story__info">
-                <h2 class="story__title">{{ story.title }}</h2>
+                <NuxtLink :to="`/details/${story.id}`"><h2 class="story__title">{{ story.title }}</h2></NuxtLink>
                 <p class="story__desc">{{ story.content }}</p>
                 <div class="story__footer">
                   <p class="story__sub-info" v-if="story.author.username">by {{ story.author.username }}</p>
@@ -52,71 +118,6 @@
       </section>
     </div>
 </template>
-  
-  <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
-  import { useStories } from '~/stores/stories'
-  
-  const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
-  
-  const storyStore = useStories();
-  
-  const stories = computed(() => storyStore.stories);
-  const hasMore = computed(() => {
-    if(storyStore.page === storyStore.pageCount) {
-      return false
-    }
-
-    return true
-  });
-  
-  const keyword = ref<string>('');
-  const sort = ref<string>('sort');
-  
-  const onKeywordChange = async () => {
-   const payload = {
-    page: 1,
-    keyword: keyword.value,
-    sort: sort.value
-   }
-   await storyStore.fetchStories(payload);
-  }
-  const onSortChange = async () => {
-    const payload = {
-      page: 1,
-      keyword: keyword.value,
-      sort: sort.value
-    }
-   await storyStore.fetchStories(payload);
-  }
-  
-  const loadMore = async () => {
-    const payload = {
-      keyword: keyword.value,
-      page: storyStore.page + 1,
-      sort: sort.value
-    }
-    
-    await storyStore.fetchStories(payload);
-  }
-  
-  onMounted(() => {
-    const payload = {
-      page: 1
-    }
-    storyStore.fetchStories(payload)
-  })
-
-  
-  function formatDate(time: string) {
-    const date = new Date(time);
-    const year = date.toLocaleString("default", { year: "2-digit" });
-    const month = date.toLocaleString("default", { month: "short" });
-    const day = date.toLocaleString("default", { day: "2-digit" });
-  
-    return `${day} ${month} ${year}`;
-  }
-  </script>
   
 <style lang="scss" scoped>
 .remove-space, body, figure, h1, h2, h3, h4, h5, h6, html, p {
@@ -146,7 +147,8 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    .btn:not(:disabled):not(.disabled) {
+    .btn:not(:disabled)
+    :not(.disabled) {
     cursor: pointer;
     }
 }

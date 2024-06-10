@@ -65,8 +65,8 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async getUserProfile() {
-      const profileUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/users/me"
       try {
+      const profileUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/users/me"
         const response = await axios.get(profileUrl, {
           headers: {
             Authorization: `Bearer ${this.token}`,

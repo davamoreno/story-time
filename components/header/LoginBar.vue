@@ -1,7 +1,5 @@
 <template>
-    <div>
-        <NuxtLink to="/login" class="btn btn-dark edit">Login</NuxtLink>
-    </div>
+    
 </template>
 
 <script setup>

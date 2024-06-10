@@ -1,6 +1,8 @@
 <template>
-    <PagesHomePage></PagesHomePage>
-    <PagesStoryPage></PagesStoryPage>
+    <main class="main-wrapper pt-0 home">
+        <PagesHomePage></PagesHomePage>
+        <PagesStoryPage></PagesStoryPage>
+    </main>
 </template>
 
 <script setup>
@@ -10,5 +12,7 @@
 </script>
     
 <style lang="scss" scoped>
- @import "~/assets/styles/main.scss";
+.main-wrapper {
+    padding: 78px 0 100px;
+}
 </style>

@@ -56,8 +56,13 @@ const togglePasswordVisibility = () => {
 
 const login = async () => {
     try{
-        await store.getUserLogin(form.value);
-        router.push('/');
+        const success = await store.getUserLogin(form.value);
+        if(success){
+            router.push('/');
+        }
+        else{
+            alert ('login gagal')
+        }
     }
     catch (err) {
         if(err instanceof Error){
@@ -68,6 +73,10 @@ const login = async () => {
         }
     }
 }
+
+onMounted(() => {
+    store.getUserLogin(form.value);
+})
 </script>
 
 <style lang="scss" scoped>
@@ -84,7 +93,8 @@ $primary-color : #000000;
   cursor: pointer;
 }
 .login__hero{
-    margin-top: 150px;
+    margin-top: 100px;
+    margin-bottom: 25px;
 }
 .submit{
     width: 100%;

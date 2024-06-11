@@ -56,13 +56,9 @@ const togglePasswordVisibility = () => {
 
 const login = async () => {
     try{
-        const success = await store.getUserLogin(form.value);
-        if(success){
-            router.push('/');
-        }
-        else{
-            alert ('login gagal')
-        }
+        await store.getUserLogin(form.value);
+        await store.getUserProfile();
+        router.push('/');
     }
     catch (err) {
         if(err instanceof Error){

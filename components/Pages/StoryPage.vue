@@ -101,7 +101,7 @@ function formatDate(time: string) {
                 <NuxtLink :to="`/details/${story.id}`"><h2 class="story__title">{{ story.title }}</h2></NuxtLink>
                 <p class="story__desc">{{ story.content }}</p>
                 <div class="story__footer">
-                  <p class="story__sub-info" v-if="story.author.username">by {{ story.author.username }}</p>
+                  <p class="story__sub-info" v-if="story.author?.username">by {{ story.author?.username }}</p>
                   <p class="story__sub-info">{{ formatDate(story.createdAt) }}</p>
                   <button class="btn story__favorite shadow"><i class="fa-regular fa-bookmark"></i></button>
                 </div>

@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', {
         const cookieToken = useCookie('token')
         cookieToken.value = this.token
       } catch (err) {
-        console.log(err)
+        throw new Error(err)
       }
     },
 

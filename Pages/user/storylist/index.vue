@@ -7,7 +7,7 @@ const storyStore = useStories();
 const authStore = useAuthStore();
 const storyDeleteId = ref<number | null>(null);
 
-onMounted(async () => {
+onMounted( async () => {
   try {
     await storyStore.getUserStory();
   } catch (err) {
@@ -15,12 +15,12 @@ onMounted(async () => {
   }
 });
 
-const setDeleteId = (storyId: number) => {
+const setDeleteId = (storyId: any) => {
   storyDeleteId.value = storyId;
 };
 
 const deleteStory = async () => {
-  if (storyDeleteId.value !== null) {
+  if (storyDeleteId.value) {
     try {
       await storyStore.deleteStory(storyDeleteId.value);
       storyDeleteId.value = null;
@@ -102,7 +102,7 @@ onMounted( () => {
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-danger" @click="deleteStory" data-bs-dismiss="modal">Delete</button>
+          <button type="button" class="btn btn-danger" @click="deleteStory()" data-bs-dismiss="modal">Delete</button>
         </div>
       </div>
     </div>

@@ -148,7 +148,7 @@ export const useStories = defineStore('stories', {
       }
     },
 
-    async deleteStory(id: number, story: Partial<Story>) {
+    async deleteStory(id: number) {
       try {
         const deleteStory = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/stories/${id}`,{
           headers:{
@@ -160,9 +160,9 @@ export const useStories = defineStore('stories', {
         console.error('Error deleting story:', error)
       }
     },
-    async deleteImg(id: number, story: Partial<Story>) {
+    async deleteImg(id: number,) {
       try {
-        const imageId = this.stories.cover_image.url.id;
+        const imageId = this.stories.cover_image.id;
         const imageUrl = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/upload/files/${imageId}`, {
           headers: {
             Authorization: `Bearer ${useCookie('jwt').value}`,

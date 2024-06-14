@@ -5,7 +5,6 @@ import { useRouter } from 'vue-router';
 
 const storiesStore = useStories();
 const router = useRouter();
-const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
 
 const title = ref('');
 const category = ref();
@@ -105,10 +104,9 @@ const handleFileChange = (event: Event) => {
                           <label for="content" class="d-block" id="__BVID__284__BV_label_">
                             Content
                           </label>
-                          <div>{{ content }}</div>
                           <div>
                             <ClientOnly>
-                              <Quill v-model="content" />
+                              <Quill v-model:content="content" name="content"/>
                             </ClientOnly>
                           </div>
                         </div>

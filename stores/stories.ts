@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
+import { useAuthStore } from './auth';
 import axios from 'axios'
+import { useCookie } from '#app';
 
 interface Story {
   id: number;
@@ -17,17 +19,28 @@ interface Story {
   };
 }
 
+interface StoryPayload {
+  id: number;
+  title: string;
+  content: string;
+  category: number;
+}
+
 interface StoryState {
+  user: any;
   stories: Story[];
+  storyList: Story[];
   selectedStory: Story | null;
   keyword: string | null;
   sort: string | null;
   page: number;
-  pageCount: number
+  pageCount: number;
 }
 
 export const useStories = defineStore('stories', {
   state: (): StoryState => ({
+    user: useAuthStore(),
+    storyList: [],
     stories: [],
     selectedStory: null,
     keyword: '',
@@ -38,14 +51,15 @@ export const useStories = defineStore('stories', {
 
   actions: {
     async fetchStories(payload: any) {
-      const {page,sort,keyword} = payload
+      const {page,sort,keyword,author} = payload
       const storyUrl = "https://storytime-api.strapi.timedoor-js.web.id/api/stories"
       try {
         const response = await axios.get<{ data: Story[] }>(storyUrl, {
           params: {
             page: page,
             sort: sort,
-            keyword: keyword
+            keyword: keyword,
+            author: author,
           }
         })
 
@@ -53,25 +67,12 @@ export const useStories = defineStore('stories', {
         this.page = response.data.meta.pagination.page
         this.pageCount = response.data.meta.pagination.pageCount
 
-        // if (this.sort === "az") {
-        //   newStories = newStories.sort((a, b) => a.title.localeCompare(b.title)) 
-        // } else if (this.sort === "za") {
-        //   newStories = newStories.sort((a, b) => b.title.localeCompare(a.title))
-        // } else if (this.sort === "newest") {
-        //   newStories = newStories.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        // }
-
         if (page > 1) {
           this.stories = [...this.stories, ...newStories]
         } else {
           this.stories = newStories
         }
 
-        // if (newStories.length < 10) {
-        //   this.hasMore = false
-        // } else {
-        //   this.page += 1
-        // }
       } catch (error) {
         console.error('Error fetching stories:', error)
       }
@@ -86,6 +87,97 @@ export const useStories = defineStore('stories', {
         console.error('Fetch story details error:', err)
       }
     },
+    async getUserStory(){
+      const data = this.user.userProfile;
+      const userStory  = `https://storytime-api.strapi.timedoor-js.web.id/api/stories?keyword&author=${data.id}&page`;
+      try{
+        const response = await axios.get(userStory);
+        const dataUser = await response.data.data;
+        console.log(dataUser);
+        
+        this.storyList = response.data.data;
+        console.log(this.storyList); 
+        
+      }catch(err){
+        console.log(err)
+      }
+      
+    },
+
+    async createStory(story: Partial<Story>) {
+      try {
+        const response = await axios.post("https://storytime-api.strapi.timedoor-js.web.id/api/stories", story, { 
+          headers:{
+            Authorization: `Bearer ${useCookie('jwt').value}`,
+          }
+         });
+         console.log();
+        this.stories.push(response.data.data);
+        return response.data.data.id;
+      } catch (error) {
+        console.error('Error creating story:', error);
+        throw Error;
+      }
+    }, 
+    
+    async createImage(image: any){
+      try{
+        const images = await axios.post("https://storytime-api.strapi.timedoor-js.web.id/api/upload", image , {
+              headers:{
+                  Authorization: `Bearer ${useCookie('jwt').value}`,
+                  'Content-Type': 'multipart/form-data',
+              }
+          })
+      return images.data.data;
+      } catch(err){
+          console.log('error', err);
+          throw Error;
+      }
+  },
+
+    async updateStory(id: number, updatedStory: Partial<Story>) {
+      const storyUrl = `https://storytime-api.strapi.timedoor-js.web.id/api/stories/${id}`
+      try {
+        const response = await axios.put<{ data: Story }>(storyUrl, { data: updatedStory })
+        const index = this.stories.findIndex(story => story.id === id)
+        if (index !== -1) {
+          this.stories[index] = response.data.data
+        }
+      } catch (error) {
+        console.error('Error updating story:', error)
+      }
+    },
+
+    async deleteStory(id: number, story: Partial<Story>) {
+      try {
+        const deleteStory = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/stories/${id}`,{
+          headers:{
+            Authorization: `Bearer ${useCookie('jwt').value}`,
+        }
+        });
+        this.stories = this.stories.filter(story => story.id !== id);
+      } catch (error) {
+        console.error('Error deleting story:', error)
+      }
+    },
+    async deleteImg(id: number, story: Partial<Story>) {
+      try {
+        const imageId = this.stories.cover_image.url.id;
+        const imageUrl = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/upload/files/${imageId}`, {
+          headers: {
+            Authorization: `Bearer ${useCookie('jwt').value}`,
+          }
+        })
+        if (!imageId) {
+          console.warn('Tidak ada gambar yang ditemukan untuk cerita ini.');
+          return;
+      }
+      return imageUrl.data;
+    } catch(err){
+      throw new Error("error");
+      
+    }
+  },
 
     resetSelectedStory() {
       this.selectedStory = null

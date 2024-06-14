@@ -99,7 +99,7 @@ onMounted(() => {
                 </div>
             </div>
         </section>
-    </main>                                
+    </main>
 </template>
 
 <style lang="scss">

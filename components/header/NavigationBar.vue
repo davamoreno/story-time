@@ -17,9 +17,6 @@ await login()
 
 onMounted( async () => {
   authStore.initialAuth()
-  if (authStore.isLogin) {
-    await authStore.getUserProfile()
-  }
 })
 </script>
 

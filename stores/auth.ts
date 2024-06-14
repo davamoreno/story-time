@@ -11,8 +11,8 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async initialAuth() {
-      const cookieToken = useCookie('token')
-      const token = cookieToken.value
+      const cookieToken = useCookie('jwt')
+      const token = cookieToken.value;
       if (token) {
         this.token = token
         this.isLogin = true
@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', {
         })
         this.token = response.data.data.jwt
         this.isLogin = true
-        const cookieToken = useCookie('token')
+        const cookieToken = useCookie('jwt')
         cookieToken.value = this.token
       } catch (err) {
         console.log(err)
@@ -55,9 +55,7 @@ export const useAuthStore = defineStore('auth', {
         })
         this.token = response.data.data.jwt
         this.isLogin = true
-
-        // Save token to cookie
-        const cookieToken = useCookie('token')
+        const cookieToken = useCookie('jwt')
         cookieToken.value = this.token
       } catch (err) {
         throw new Error(err)
@@ -72,7 +70,7 @@ export const useAuthStore = defineStore('auth', {
             Authorization: `Bearer ${this.token}`,
           },
         })
-        this.userProfile = response.data.data
+        this.userProfile = response.data.data;
       } catch (err) {
         console.log("Get Profile Error:", err)
       }
@@ -83,7 +81,7 @@ export const useAuthStore = defineStore('auth', {
       this.isLogin = false
 
       // Clear token from cookie
-      const cookieToken = useCookie('token')
+      const cookieToken = useCookie('jwt')
       cookieToken.value = null
     },
   },

@@ -11,7 +11,6 @@ const hasMore = computed(() => {
   if(storyStore.page === storyStore.pageCount) {
     return false
   }
-
   return true
 });
 
@@ -98,7 +97,9 @@ function formatDate(time: string) {
                 <img v-if="story.cover_image" :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
               </NuxtLink>
               <div class="story__info">
-                <NuxtLink :to="`/details/${story.id}`"><h2 class="story__title">{{ story.title }}</h2></NuxtLink>
+                <NuxtLink :to="`/details/${story.id}`">
+                  <h2 class="story__title">{{ story.title }}</h2>
+                </NuxtLink>
                 <p class="story__desc">{{ story.content }}</p>
                 <div class="story__footer">
                   <p class="story__sub-info" v-if="story.author?.username">by {{ story.author?.username }}</p>

@@ -1,5 +1,5 @@
 <template>
-  <div class="footer shadow">
+  <div class="footer">
       © 2022 PT. Timedoor Indonesia. All rights reserved.
   </div>
 </template>

@@ -75,7 +75,36 @@ export const useAuthStore = defineStore('auth', {
         console.log("Get Profile Error:", err)
       }
     },
-
+    async editUserProfile(name: any, biodata:any){
+      try {
+        if(!name){
+          throw new Error("Nama Harus Diisi !!!");
+        }
+        const response = await axios.patch(`https://storytime-api.strapi.timedoor-js.web.id/api/users/me`,{name, biodata}, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      this.userProfile = response.data.data;
+      } catch (err) {
+        throw new Error("Error", err);
+        
+      }
+    },
+    async uploadUserPicture(image: any){
+      try {
+        const response = await axios.post('https://storytime-api.strapi.timedoor-js.web.id/api/upload', image, {
+          headers:{
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'multipart/form-data'
+        } 
+      })
+      this.userProfile = response.data.data;
+      } catch (err) {
+        throw new Error("Error", err);
+      }
+    },
     async logout() {
       this.token = null
       this.isLogin = false

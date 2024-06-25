@@ -1,3 +1,49 @@
+<script setup lang="ts">
+import { useAuthStore } from '~/stores/auth';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const store = useAuthStore();
+const router = useRouter();
+
+interface LoginForm {
+    identifier: string
+    password: string
+}
+
+const form = ref<LoginForm>({
+    identifier: '',
+    password: ''
+})
+const errorMessage = ref<string>('')
+
+const passwordFieldType = ref<'password' | 'text'>('password');
+
+const togglePasswordVisibility = () => {
+  passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
+};
+
+const login = async () => {
+    try{
+        await store.getUserLogin(form.value);
+        await store.getUserProfile();
+        router.push('/');
+    }
+    catch (err) {
+        if(err instanceof Error){
+            errorMessage.value = err.message
+        }
+        else{
+            errorMessage.value = "An unknown error occured."
+        }
+    }
+}
+
+onMounted(() => {
+    store.getUserLogin(form.value);
+})
+</script>
+
 <template>
     <div class="container-fluid login__hero">
         <div class="d-flex col-12 justify-content-center">
@@ -29,51 +75,6 @@
         </div> 
     </div>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from '~/stores/auth';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-
-const store = useAuthStore();
-const router = useRouter();
-
-interface LoginForm {
-    identifier: string
-    password: string
-}
-
-const form = ref<LoginForm>({
-    identifier: '',
-    password: ''
-})
-const errorMessage = ref<string>('')
-
-const passwordFieldType = ref<'password' | 'text'>('password');
-const togglePasswordVisibility = () => {
-  passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
-};
-
-const login = async () => {
-    try{
-        await store.getUserLogin(form.value);
-        await store.getUserProfile();
-        router.push('/');
-    }
-    catch (err) {
-        if(err instanceof Error){
-            errorMessage.value = err.message
-        }
-        else{
-            errorMessage.value = "An unknown error occured."
-        }
-    }
-}
-
-onMounted(() => {
-    store.getUserLogin(form.value);
-})
-</script>
 
 <style lang="scss" scoped>
 $primary-color : #000000;

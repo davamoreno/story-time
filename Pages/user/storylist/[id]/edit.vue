@@ -1,55 +1,70 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useStories } from '@/stores/stories';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
-const storiesStore = useStories();
+const storyStore = useStories();
+const route = useRoute();
 const router = useRouter();
 
+const storyId = route.params.id;
+const urlBase = 'https://storytime-api.strapi.timedoor-js.web.id';
+
 const title = ref('');
-const category = ref();
 const content = ref('');
-const imageUrl = ref('');
+const category = ref();
 const image = ref();
+const imageUrl = ref('');
 
-const createStory = async () => {
-  const newStory = {
-    title: title.value,
-    category: category.value,
-    content: content.value,
-  };
-
-  try {
-    const story = await storiesStore.createStory(newStory);
-    console.log(story);
-    
-
-    if (story && image.value) {
-      const newImage = new FormData();
-      newImage.append('files', image.value);
-      newImage.append('refId', story);
-      newImage.append('ref', 'api::story.story');
-      newImage.append('field', 'cover_image');
-
-      await storiesStore.createImage(newImage);
+onMounted(async () => {
+    await storyStore.fetchStoryDetails(storyId);
+    const story = storyStore.selectedStory;
+    if(story){
+        title.value = story.title,
+        content.value = story.content,
+        category.value = story.category.name,
+        imageUrl.value = story.cover_image.url
     }
-
-    router.push('/user/storylist');
-  } catch (error) {
-    console.error('Kesalahan saat membuat cerita:', error);
-  }
-};
-
+});
 
 const handleFileChange = (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0] || null;
-  if (file) {
-    image.value = file;
-    imageUrl.value = URL.createObjectURL(file );
-  }
+    const file = (event.target as HTMLInputElement).files?.[0] || null;
+    if(file){
+        image.value = file;
+        imageUrl.value = URL.createObjectURL(file);
+    }
 };
-</script>
 
+const updateStory = async () => {
+    try {
+        if(image.value){
+        const formData = new formData();
+        formData.append('files', image.value);
+        const uploadedImage = await storyStore.createImage(formData);
+        if(uploadedImage.length > 0){
+            const updateStory = {
+                title: title.value,
+                content: content.value,
+                category: category.value,
+                cover_image: uploadedImage[0].id
+            }
+        await storyStore.updateStory(storyId, updateStory);
+        }
+        else{
+            const updateStory = {
+                title: title.value,
+                content: content.value,
+                category: category.value
+            }
+        await storyStore.updateStory(storyId, updateStory);
+        }
+        router.push('/user/storylist')
+        }
+    } catch (error) {
+        console.error('error updating story:', error);
+        
+    }
+}
+</script>
 
 <template>
     <main class="main-wrapper">
@@ -66,12 +81,12 @@ const handleFileChange = (event: Event) => {
                     </svg>
                   </NuxtLink>
                   <h1 class="story-form__title">
-                    Create Story
+                    Edit Story
                   </h1>
                 </div>
                 <div class="story-form__wrapper">
                   <span>
-                    <form @submit.prevent="createStory">
+                    <form @submit.prevent="updateStory">
                       <span>
                         <div role="group" class="form-group">
                           <label for="title" class="d-block">
@@ -89,8 +104,8 @@ const handleFileChange = (event: Event) => {
                           </label>
                           <div>
                             <select v-model="category" id="category" class="custom-select">
-                              <option disabled value="">
-                                Select a category
+                              <option disabled value="2">
+                               {{ storyStore.stories.category }}
                               </option>
                               <option value="3">Comedy</option>
                               <option value="4">Horror</option>

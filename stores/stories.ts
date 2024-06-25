@@ -138,11 +138,17 @@ export const useStories = defineStore('stories', {
     async updateStory(id: number, updatedStory: Partial<Story>) {
       const storyUrl = `https://storytime-api.strapi.timedoor-js.web.id/api/stories/${id}`
       try {
-        const response = await axios.put<{ data: Story }>(storyUrl, { data: updatedStory })
+        const response = await axios.put<{ data: Story }>(storyUrl, { data: updatedStory }, {
+          headers: {
+            Authorization: `Bearer ${useCookie('jwt').value}`,
+            'Content-Type': 'application/json'
+          }
+        })
         const index = this.stories.findIndex(story => story.id === id)
         if (index !== -1) {
           this.stories[index] = response.data.data
         }
+        return response.data.data.id;
       } catch (error) {
         console.error('Error updating story:', error)
       }
@@ -162,7 +168,7 @@ export const useStories = defineStore('stories', {
     },
     async deleteImg(id: number,) {
       try {
-        const imageId = this.stories.cover_image.id;
+        const imageId = this.storyList.cover_image.id;
         const imageUrl = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/upload/files/${imageId}`, {
           headers: {
             Authorization: `Bearer ${useCookie('jwt').value}`,

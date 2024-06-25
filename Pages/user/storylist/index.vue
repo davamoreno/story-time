@@ -71,7 +71,7 @@ onMounted( () => {
                       </td>
                       <td>{{ story.updatedAt }}</td>
                       <td>
-                        <NuxtLink :to="'/user/story/' + story.id + '/edit'" class="btn btn-outline-dark rounded-0 py-1 px-3 me-3 btn-edit">
+                        <NuxtLink :to="'/user/storylist/' + story.id + '/edit'" class="btn btn-outline-dark rounded-0 py-1 px-3 me-3 btn-edit">
                           <i class="fa-solid fa-pen"></i> Edit
                         </NuxtLink>
                         <button class="btn btn-outline-danger rounded-0 py-1 px-3 btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" @click="setDeleteId(story.id)">

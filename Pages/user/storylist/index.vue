@@ -139,17 +139,6 @@ h1 {
   font-size: 24px;
 }
 
-.btn-primary {
-  background: #343434;
-  border-color: #343434;
-  color: #fff;
-}
-
-.btn:hover {
-  background: #0e0e0e;
-  border-color: #0e0e0e;
-}
-
 .btn {
   font-size: 0.875rem;
   line-height: 1.5;

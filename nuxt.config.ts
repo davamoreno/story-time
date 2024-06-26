@@ -17,7 +17,25 @@ export default defineNuxtConfig({
     assets:"/<rootDir>/assets",
   },
   components: true,
-  css:['bootstrap/dist/css/bootstrap.min.css'],
+  css:['bootstrap/dist/css/bootstrap.min.css',  '@/assets/styles/main.scss'],
+  build: {
+    loaders: {
+      scss: {
+        implementation: require('sass')
+      }
+    }
+  },
+  vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: `
+            @import "@/assets/styles/_colors.scss";
+          `
+        }
+      }
+    }
+  },
   plugins: [
     '~/plugins/vee-validate.ts', '~/plugins/fontawesome.ts' , '~/plugins/pinia.ts',
   ],

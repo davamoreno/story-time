@@ -25,11 +25,13 @@
     "consola": "^3.2.3",
     "cookie-universal-nuxt": "^2.2.2",
     "defu": "^6.1.4",
+    "file-saver": "^2.0.5",
     "nuxt": "^3.11.2",
     "pinia": "^2.1.7",
     "universal-cookie": "^7.1.4",
     "vee-validate": "^4.13.1",
     "vue": "^3.4.27",
+    "vue-cropper": "^0.6.5",
     "vue-cropperjs": "^5.0.0",
     "vue-router": "^4.3.2",
     "yup": "^1.4.0"

@@ -1,16 +1,23 @@
 <script lang="ts" setup>
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { useRouter } from 'vue-router';
+import VueCropper from 'vue-cropperjs'
+import 'cropperjs/dist/cropper.css';
+import { url } from '@vee-validate/rules';
 
 const store = useAuthStore();
 const router = useRouter();
+const urlBase = 'https://storytime-api.strapi.timedoor-js.web.id/';
 
-const showPasswordForm = ref();
-const showEditProfile = ref();
-const name = ref('');
+const showPasswordForm = ref(false);
+const showEditProfile = ref(false);
+const name = ref('');   
 const biodata = ref('');
 const imageUrl = ref('');
+const cropper = ref('');
 const image = ref();
+const showImageCropper = ref(false);
 const passwordFieldType = ref<'password' | 'text'>('password');
 const oldPasswordFieldType = ref<'password' | 'text'>('password');
 const newPasswordFieldType = ref<'password' | 'text'>('password');
@@ -39,7 +46,6 @@ const updateProfile = async () => {
     try {
         if(user.name === null){
             throw new Error("Username Harus Diisi");
-            
         }
         user.name = name.value;
         user.biodata = biodata.value;
@@ -52,30 +58,38 @@ const updateProfile = async () => {
     }
 }
 
-const uploadedImage = async () => {
-    const newImage = new FormData();
-      newImage.append('files', image.value);
-      newImage.append('refId', store.userProfile);
-      newImage.append('ref', 'api::story.story');
-      newImage.append('field', 'cover_image');
-
-      await store.uploadUserPicture(newImage);
-}
-
-const handleFileChange = (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0] || null;
-  if (file) {
-    image.value = file;
-    imageUrl.value = URL.createObjectURL(file );
-  }
-};
-
 const togglePasswordForm = () => {
     showPasswordForm.value = !showPasswordForm.value;
 }
 const toggleProfileForm = () => {
     showEditProfile.value = !showEditProfile.value;
 }
+
+const handleFileChange = (file: File) => {
+    image.value = file; 
+    imageUrl.value = URL.createObjectURL(file);
+}
+
+const handleCroppedImage = async () => {
+    if(cropper.value){
+        const croppedCanvas = cropper.value.getCropppedCanvas();
+        croppedCanvas.toBlop(async (blop) => {
+            if(blop){
+                try {
+                    await store.uploadUserPicture(blop);
+                    await store.userProfile();
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        })
+    }
+}
+
+const cancelCrop = () => {
+    showImageCropper.value = false;
+}
+
 </script>
 
 <template>
@@ -88,50 +102,31 @@ const toggleProfileForm = () => {
                         <div class="profile">
                             <div class="profile__head">
                                 <h1 class="profile__title">My Profile</h1>
-                                <button @click="toggleProfileForm" v-if="!showEditProfile" type="button" class="btn btn-outline-primary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 36 36" class="font20 iconify iconify--clarity"><path fill="currentColor" d="M28 30H6V8h13.22l2-2H6a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V15l-2 2Z" class="clr-i-outline clr-i-outline-path-1"></path><path fill="currentColor" d="m33.53 5.84l-3.37-3.37a1.61 1.61 0 0 0-2.28 0L14.17 16.26l-1.11 4.81A1.61 1.61 0 0 0 14.63 23a1.7 1.7 0 0 0 .37 0l4.85-1.07L33.53 8.12a1.61 1.61 0 0 0 0-2.28M18.81 20.08l-3.66.81l.85-3.63L26.32 6.87l2.82 2.82ZM30.27 8.56l-2.82-2.82L29 4.16L31.84 7Z" class="clr-i-outline clr-i-outline-path-2"></path><path fill="none" d="M0 0h36v36H0z"></path></svg><span class="ml-5px">Edit Profile</span></button>
+                                <button @click="toggleProfileForm" v-if="!showEditProfile" type="button" class="btn btn-outline-primary btn-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 36 36" class="font20 iconify iconify--clarity">
+                                        <path fill="currentColor" d="M28 30H6V8h13.22l2-2H6a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V15l-2 2Z" class="clr-i-outline clr-i-outline-path-1"></path>
+                                        <path fill="currentColor" d="m33.53 5.84l-3.37-3.37a1.61 1.61 0 0 0-2.28 0L14.17 16.26l-1.11 4.81A1.61 1.61 0 0 0 14.63 23a1.7 1.7 0 0 0 .37 0l4.85-1.07L33.53 8.12a1.61 1.61 0 0 0 0-2.28M18.81 20.08l-3.66.81l.85-3.63L26.32 6.87l2.82 2.82ZM30.27 8.56l-2.82-2.82L29 4.16L31.84 7Z" class="clr-i-outline clr-i-outline-path-2"></path>
+                                        <path fill="none" d="M0 0h36v36H0z"></path>
+                                    </svg>
+                                    <span class="ml-5px">Edit Profile</span>
+                                </button>
                             </div>
                             <div class="row">
                                 <div class="col-lg-4">
-                                    <div class="image-wrapper">
-                                        <div class="profile_image" v-if="!imageUrl">
-                                            <img src="https://via.placeholder.com/150" alt="">
+                                    <div class="image-wrapper"> 
+                                        <div class="profile_image">
+                                            <img :src="store.userProfile?.profile_picture?.formats?.thumbnail?.url 
+                                            ? urlBase + store.userProfile?.profile_picture?.formats?.thumbnail?.url 
+                                            : 'https://via.placeholder.com/150'" alt="">
                                         </div>
-                                        <div class="profile_image" v-if="imageUrl">
-                                            <img :src="imageUrl" alt="">
-                                        </div>
-                                    <fieldset class="form-group">
-                                        <div>
-                                            <label for="image-upload" class="btn btn-outline-primary btn-block w-100">Change Avatar</label>
-                                            <input type="file" id="image-upload" @change="handleFileChange" data-bs-toggle="modal" data-bs-target="#crop-photo___BV_modal_outer_" accept=".png, .jpg, .jpeg" class="d-none form-control-file">
-                                        </div>
-                                        <!---->
-                                    </fieldset>
-                                        
-                                        <div id="crop-photo___BV_modal_outer_" style="position: absolute; z-index: 1040;">
-                                            <div id="crop-photo" role="dialog" aria-hidden="true" aria-labelledby="crop-photo___BV_modal_title_" aria-describedby="crop-photo___BV_modal_body_" class="modal fade" style="display: none;">
-                                                <div class="modal-dialog modal-md modal-dialog-centered"><!---->
-                                                    <div id="crop-photo___BV_modal_content_" tabindex="-1" class="modal-content">
-                                                        <header id="crop-photo___BV_modal_header_" class="modal-header">
-                                                            <h5 id="crop-photo___BV_modal_title_" class="modal-title">Adjust Image</h5>
-                                                            <button type="button" aria-label="Close" class="close">x</button>
-                                                        </header>
-                                                        <div id="crop-photo___BV_modal_body_" class="modal-body">
-                                                            <div class="cropper text-center">
-                                                                <img :src="imageUrl" alt="">
-                                                            </div>
-                                                        </div>
-                                                        <footer id="crop-photo___BV_modal_footer_" class="modal-footer">
-                                                            <button type="button" class="btn btn-outline-primary">
-                                                                 Cancel
-                                                            </button> 
-                                                            <button type="button" class="btn btn-primary">
-                                                                <span>Change</span>
-                                                            </button>
-                                                        </footer>
-                                                    </div>
-                                                </div>
+                                        <fieldset class="form-group">
+                                            <div>
+                                                <label for="image-upload" class="btn btn-outline-primary btn-block w-100" data-bs-toggle="modal" data-bs-target="#cropper">Change Avatar</label>
+                                                <ui-base-input-img class="d-none" name="image" v-model="image" type="file" label=""
+                                                    identity="inputImage" @change="handleFileChange" 
+                                                />
                                             </div>
-                                        </div>
+                                        </fieldset>
                                     </div>
                                 </div>
                                 <div class="col-lg-8" v-if="!showEditProfile">
@@ -148,8 +143,7 @@ const toggleProfileForm = () => {
                                                 </tr>
                                                 <tr>
                                                     <th>Biodata</th>
-                                                    <td v-if="store.userProfile.biodata">{{ store.userProfile?.biodata }}</td>
-                                                    <td v-else> - </td>
+                                                    <td>{{ store.userProfile.biodata }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -158,140 +152,111 @@ const toggleProfileForm = () => {
                                 <div class="col-lg-8" v-if="showEditProfile">
                                     <div class="profile__info">
                                         <span>
-                                            <form class="" @submit.prevent="updateProfile()">
-                                                <span>
-                                                    <div role="group" class="form-group" id="__BVID__83">
-                                                        <label for="fullname" class="d-block" id="__BVID__83__BV_label_">
-                                                            Name
-                                                        </label>
-                                                        <div>
-                                                            <input v-model="name" id="fullname" type="text" placeholder="Enter your name" class="form-control"><!----><!----><!---->
-                                                        </div>
-                                                    </div>
-                                                </span>
-                                                 <span>
-                                                    <div role="group" class="form-group" id="__BVID__86">
-                                                        <label for="email" class="d-block" id="__BVID__86__BV_label_">
-                                                            Email
-                                                        </label>
-                                                        <div>
-                                                            <input id="email" type="email" placeholder="Enter your email" readonly="readonly" class="form-control">
-                                                        <!----><!----><!---->
-                                                        </div>
-                                                    </div>
-                                                </span> 
-                                                <span>
-                                                    <div role="group" class="form-group" id="__BVID__89">
-                                                        <label for="about-me" class="d-block" id="__BVID__89__BV_label_">
-                                                            About me
-                                                        </label>
-                                                        <div>
-                                                            <textarea v-model="biodata" id="about-me" placeholder="Enter about me" rows="4" wrap="soft" class="form-control">
-
-                                                            </textarea><!----><!----><!---->
-                                                        </div>
-                                                    </div>
-                                                </span> 
-                                                <div class="d-flex justify-content-end">
-                                                    <button type="button" class="btn mr-5px btn-outline-primary" @click="toggleProfileForm">
-                                                        Cancel
-                                                    </button>
-                                                    <button type="submit" class="btn btn-primary"><!---->
-                                                        Save
-                                                    </button>
+                                            <form @submit.prevent="updateProfile" enctype="multipart/form-data" class="editProfile">
+                                                <fieldset class="form-group">
+                                                    <label for="name">Name</label>
+                                                    <input type="text" id="name" v-model="name" required class="form-control">
+                                                </fieldset>
+                                                <fieldset class="form-group">
+                                                    <label for="biodata">Biodata</label>
+                                                    <textarea id="biodata" rows="5" v-model="biodata" class="form-control"></textarea>
+                                                </fieldset>
+                                                <div class="d-flex justify-content-between">
+                                                    <button type="submit" class="btn btn-primary mt-4">Save</button>
+                                                    <button @click="toggleProfileForm" type="button" class="btn btn-outline-primary mt-4">Cancel</button>
                                                 </div>
                                             </form>
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div data-v-b8dd6178="" class="password">
-                            <div class="password__head">
-                                <h1 class="password__title mb-0">
-                                    Password
-                                </h1> 
-                                <button type="button" class="btn btn-outline-primary btn-sm" @click="togglePasswordForm" v-if="!showPasswordForm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 36 36" class="iconify iconify--clarity"><path fill="currentColor" d="M28 30H6V8h13.22l2-2H6a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V15l-2 2Z" class="clr-i-outline clr-i-outline-path-1"></path><path fill="currentColor" d="m33.53 5.84l-3.37-3.37a1.61 1.61 0 0 0-2.28 0L14.17 16.26l-1.11 4.81A1.61 1.61 0 0 0 14.63 23a1.7 1.7 0 0 0 .37 0l4.85-1.07L33.53 8.12a1.61 1.61 0 0 0 0-2.28M18.81 20.08l-3.66.81l.85-3.63L26.32 6.87l2.82 2.82ZM30.27 8.56l-2.82-2.82L29 4.16L31.84 7Z" class="clr-i-outline clr-i-outline-path-2"></path><path fill="none" d="M0 0h36v36H0z"></path></svg> 
-                                    <span class="ml-5px">
-                                        Change Password
-                                    </span>
-                                </button>
+                            <div class="profile mt-4">
+                                <div class="profile__head">
+                                    <h1 class="profile__title">Ubah Password</h1>
+                                    <button @click="togglePasswordForm" v-if="!showPasswordForm" type="button" class="btn btn-outline-primary btn-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 36 36" class="font20 iconify iconify--clarity">
+                                            <path fill="currentColor" d="M28 30H6V8h13.22l2-2H6a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V15l-2 2Z" class="clr-i-outline clr-i-outline-path-1"></path>
+                                            <path fill="currentColor" d="m33.53 5.84l-3.37-3.37a1.61 1.61 0 0 0-2.28 0L14.17 16.26l-1.11 4.81A1.61 1.61 0 0 0 14.63 23a1.7 1.7 0 0 0 .37 0l4.85-1.07L33.53 8.12a1.61 1.61 0 0 0 0-2.28M18.81 20.08l-3.66.81l.85-3.63L26.32 6.87l2.82 2.82ZM30.27 8.56l-2.82-2.82L29 4.16L31.84 7Z" class="clr-i-outline clr-i-outline-path-2"></path>
+                                            <path fill="none" d="M0 0h36v36H0z"></path>
+                                        </svg>
+                                        <span class="ml-5px">Edit Password</span>
+                                    </button>
+                                </div>
+                                <div class="row" v-if="showPasswordForm">
+                                    <div class="col-lg-8">
+                                        <div class="profile__info">
+                                            <span>
+                                                <form>
+                                                    <fieldset class="form-group">
+                                                        <label for="old-password">Old Password</label>
+                                                        <div class="input-group">
+                                                            <input :type="oldPasswordFieldType" id="old-password" required class="form-control">
+                                                            <div class="input-group-append">
+                                                                <button type="button" class="btn btn-outline-secondary" @click="oldTogglePasswordVisibility">
+                                                                    <span v-if="oldPasswordFieldType === 'password'">Show</span>
+                                                                    <span v-else>Hide</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <fieldset class="form-group">
+                                                        <label for="new-password">New Password</label>
+                                                        <div class="input-group">
+                                                            <input :type="newPasswordFieldType" id="new-password" required class="form-control">
+                                                            <div class="input-group-append">
+                                                                <button type="button" class="btn btn-outline-secondary" @click="newTogglePasswordVisibility">
+                                                                    <span v-if="newPasswordFieldType === 'password'">Show</span>
+                                                                    <span v-else>Hide</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <fieldset class="form-group">
+                                                        <label for="password">Confirm Password</label>
+                                                        <div class="input-group">
+                                                            <input :type="passwordFieldType" id="password" required class="form-control">
+                                                            <div class="input-group-append">
+                                                                <button type="button" class="btn btn-outline-secondary" @click="togglePasswordVisibility">
+                                                                    <span v-if="passwordFieldType === 'password'">Show</span>
+                                                                    <span v-else>Hide</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <div class="d-flex justify-content-between">
+                                                        <button type="submit" class="btn btn-primary mt-4">Save</button>
+                                                        <button @click="togglePasswordForm" type="button" class="btn btn-outline-primary mt-4">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="password__info" v-if="showPasswordForm">
-                                <span>
-                                    <form class="" @submit.prevent="">
-                                        <span>
-                                            <div role="group" class="form-group" id="__BVID__44">
-                                                <label for="old-password" class="d-block" id="__BVID__44__BV_label_">
-                                                    Old Password
-                                                </label>
-                                                <div>
-                                                    <div role="group" class="input-group"><!---->
-                                                        <input id="old-password" :type="oldPasswordFieldType" placeholder="Enter old password" class="form-control"> 
-                                                        <font-awesome-icon
-                                                            :icon="oldPasswordFieldType === 'password' ? 'eye' : 'eye-slash'"
-                                                            @click="oldTogglePasswordVisibility"
-                                                             class="password-icon"
-                                                         />
-                                                    </div><!----><!----><!---->
-                                                </div>
-                                            </div>
-                                        </span> 
-                                        <span>
-                                            <div role="group" class="form-group" id="__BVID__48">
-                                                <label for="new-password" class="d-block" id="__BVID__48__BV_label_">
-                                                    New Password
-                                                </label>
-                                                <div>
-                                                    <div role="group" class="input-group"><!---->
-                                                        <input id="new-password"  :type="newPasswordFieldType" placeholder="Enter a new password" class="form-control"> 
-                                                        <font-awesome-icon
-                                                            :icon="newPasswordFieldType === 'password' ? 'eye' : 'eye-slash'"
-                                                            @click="newTogglePasswordVisibility"
-                                                             class="password-icon"
-                                                         />
-                                                </div><!----><!----><!---->
-                                            </div>
-                                        </div>
-                                    </span> 
-                                    <span>
-                                        <div role="group" class="form-group" id="__BVID__52">
-                                            <label for="new-password-confirmation" class="d-block" id="__BVID__52__BV_label_">
-                                                New Password Confirmation
-                                            </label>
-                                            <div>
-                                                <div role="group" class="input-group"><!---->
-                                                    <input id="new-password-confirmation" :type="passwordFieldType" placeholder="Enter new password confirmation" class="form-control">
-                                                    <font-awesome-icon
-                                                        :icon="passwordFieldType === 'password' ? 'eye' : 'eye-slash'"
-                                                         @click="togglePasswordVisibility"
-                                                        class="password-icon"
-                                                    />
-                                                    </div><!----><!----><!---->
-                                                </div>
-                                            </div>
-                                        </span> 
-                                        <div class="d-flex justify-content-end">
-                                            <button type="button" class="btn mr-5px btn-outline-primary" @click="togglePasswordForm">
-                                                Cancel
-                                            </button> 
-                                            <button type="submit" class="btn btn-primary"><!---->
-                                                Save
-                                            </button>
-                                        </div>
-                                    </form>
-                                </span>
-                            </div> 
                         </div>
                     </div>
                 </div>
             </div>
-            
         </section>
     </main>
 
-    
+    <div class="modal mt-5" id="cropper" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adjust Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="cancelCrop"></button>
+                </div>
+                <div class="modal-body">
+                    <vue-cropper v-if="imageUrl" ref="cropper" :aspect-ratio="16 / 16" :src="imageUrl" preview=".preview" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-dark rounded-0" data-bs-dismiss="modal" @click="cancelCrop">Cancel</button>
+                    <button type="button" class="btn btn-dark rounded-0" data-bs-dismiss="modal" @click="handleCroppedImage">Change</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <style lang="scss">

@@ -2,19 +2,26 @@
 import { useAuthStore } from '~/stores/auth';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useField, useForm, useFormValues } from 'vee-validate';
+import * as yup from 'yup';
+import { navigateTo } from "nuxt/app";
 
 const store = useAuthStore();
 const router = useRouter();
 
-interface LoginForm {
-    identifier: string
-    password: string
-}
 
-const form = ref<LoginForm>({
-    identifier: '',
-    password: ''
-})
+const schema = yup.object({
+  identifier: yup.string().required('Identifier is required'),
+  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+});
+
+const { handleSubmit, resetForm } = useForm({
+  validationSchema: schema,
+});
+
+const { value: identifier, errorMessage: identifierError } = useField('identifier');
+const { value: password, errorMessage: passwordError } = useField('password');
+
 const errorMessage = ref<string>('')
 
 const passwordFieldType = ref<'password' | 'text'>('password');
@@ -23,11 +30,11 @@ const togglePasswordVisibility = () => {
   passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
 };
 
-const login = async () => {
+const login = handleSubmit( async (values) => {
     try{
-        await store.getUserLogin(form.value);
-        await store.getUserProfile();
-        router.push('/');
+        await store.getUserLogin(values);
+        await store.userProfile;
+        router.push('/')
     }
     catch (err) {
         if(err instanceof Error){
@@ -37,11 +44,12 @@ const login = async () => {
             errorMessage.value = "An unknown error occured."
         }
     }
-}
+});
 
-onMounted(() => {
-    store.getUserLogin(form.value);
-})
+onMounted(handleSubmit((values) => {
+    store.getUserLogin(values);
+}));
+
 </script>
 
 <template>
@@ -53,18 +61,20 @@ onMounted(() => {
                 <form @submit.prevent="login">
                     <div>
                         <label for="identifier">Username or Email</label>
-                        <input v-model="form.identifier" placeholder="Input Email/Username" id="identifier" type="text" required>
+                        <input v-model="identifier" placeholder="Input Email/Username" id="identifier" type="text" />
+                        <p class="text-danger mt-auto">{{ identifierError }}</p>
                     </div>
                     <div>
                         <label for="password">Password</label>
                         <div class="password-wrapper">
-                            <input :type="passwordFieldType" placeholder="Input Password" v-model="form.password" name="password" id="password" required>
+                            <input :type="passwordFieldType" placeholder="Input Password" v-model="password" name="password" id="password" />
                             <font-awesome-icon
                             :icon="passwordFieldType === 'password' ? 'eye' : 'eye-slash'"
                             @click="togglePasswordVisibility"
                             class="password-icon"
                             />
                         </div>
+                        <p class="text-danger">{{ passwordError }}</p>
                     </div>
                     <button class="btn btn-dark" type="submit">Submit</button>
                 </form>

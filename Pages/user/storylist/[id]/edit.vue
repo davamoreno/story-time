@@ -16,54 +16,70 @@ const image = ref();
 const imageUrl = ref('');
 
 onMounted(async () => {
-    await storyStore.fetchStoryDetails(storyId);
+  await userStoryId();
+})
+
+const userStoryId = async () => {
+  try {
+    await storyStore.fetchStoryDetails(Number(storyId));
     const story = storyStore.selectedStory;
-    if(story){
-        title.value = story.title,
-        content.value = story.content,
-        category.value = story.category.name,
-        imageUrl.value = story.cover_image.url
+
+    title.value = story?.title || '';
+    content.value = story?.content || '';
+    category.value = story?.category.id || '';
+    imageUrl.value = story?.cover_image.id ? story.cover_image.url : '';
+
+  } catch (error) {
+    console.log(error); 
+  }
+}
+
+const cancel = () => {
+    router.push('/user');
+}
+
+const saveStory = async () => {
+  try {
+    const updateStory = {
+        title : title.value,
+        content : content.value,
+        category : category.value
     }
-});
+    await storyStore.updateStory(Number(storyId), updateStory);
+    if(image.value){
+      if(imageUrl.value){
+        await storyStore.deleteImg(Number(storyId));
+      }
+      const newImage = new FormData();
+        newImage.append('files', image.value);
+        newImage.append('refId', String(storyId));
+        newImage.append('ref', 'api::story.story');
+        newImage.append('field', 'cover_image');
+        await storyStore.createImage(newImage);
+    }
+    router.push('/user/storylist');
+  } catch (error) {
+    console.log(error);
+    
+  }
+}
 
 const handleFileChange = (event: Event) => {
-    const file = (event.target as HTMLInputElement).files?.[0] || null;
-    if(file){
-        image.value = file;
-        imageUrl.value = URL.createObjectURL(file);
-    }
+  const file = (event.target as HTMLInputElement).files?.[0] || null;
+  if (file) {
+    image.value = file;
+    imageUrl.value = URL.createObjectURL(file );
+  }
 };
 
-const updateStory = async () => {
-    try {
-        if(image.value){
-        const formData = new formData();
-        formData.append('files', image.value);
-        const uploadedImage = await storyStore.createImage(formData);
-        if(uploadedImage.length > 0){
-            const updateStory = {
-                title: title.value,
-                content: content.value,
-                category: category.value,
-                cover_image: uploadedImage[0].id
-            }
-        await storyStore.updateStory(storyId, updateStory);
-        }
-        else{
-            const updateStory = {
-                title: title.value,
-                content: content.value,
-                category: category.value
-            }
-        await storyStore.updateStory(storyId, updateStory);
-        }
-        router.push('/user/storylist')
-        }
-    } catch (error) {
-        console.error('error updating story:', error);
-        
-    }
+const removeImage = () => {
+  image.value = null;
+  imageUrl.value = '';
 }
+
+const imageSrc = computed(() => {
+  return imageUrl.value.startsWith('blob:') ? imageUrl.value : urlBase + imageUrl.value;
+})
 </script>
 
 <template>
@@ -86,7 +102,7 @@ const updateStory = async () => {
                 </div>
                 <div class="story-form__wrapper">
                   <span>
-                    <form @submit.prevent="updateStory">
+                    <form @submit.prevent="saveStory()">
                       <span>
                         <div role="group" class="form-group">
                           <label for="title" class="d-block">
@@ -104,8 +120,8 @@ const updateStory = async () => {
                           </label>
                           <div>
                             <select v-model="category" id="category" class="custom-select">
-                              <option disabled value="2">
-                               {{ storyStore.stories.category }}
+                              <option value="" disabled>
+                                Select a category
                               </option>
                               <option value="3">Comedy</option>
                               <option value="4">Horror</option>
@@ -137,16 +153,16 @@ const updateStory = async () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#000000" width="20" height="20">
                                   <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"></path>
                                 </svg>
-                                <img :src="imageUrl" alt="" style="width: 200px;">
+                                <img :src="imageSrc" alt="" style="width: 200px;">
                                 <p>Add Image</p>
                               </label>
-                              <input @change="handleFileChange" type="file" id="image-upload" accept=".png, .jpg, .jpeg" class="d-none form-control-file">
+                              <input @change="handleFileChange" identity="inputImage" type="file" id="image-upload" accept=".png, .jpg, .jpeg" class="d-none form-control-file"/>
                             </div>
                           </div>
                         </div>
                       </span>
                       <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-outline-primary mr-5px">
+                        <button type="button" class="btn btn-outline-primary mr-5px" @click="cancel()">
                           Batal
                         </button>
                         <button type="submit" class="btn btn-primary">

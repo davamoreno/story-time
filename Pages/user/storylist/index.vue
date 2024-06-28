@@ -4,7 +4,7 @@ import { useAuthStore } from '~/stores/auth';
 import { useStories } from '~/stores/stories';
 
 const storyStore = useStories();
-const authStore = useAuthStore();
+const router = useRouter()
 const storyDeleteId = ref<number | null>(null);
 
 onMounted( async () => {
@@ -24,6 +24,7 @@ const deleteStory = async () => {
     try {
       await storyStore.deleteStory(storyDeleteId.value);
       storyDeleteId.value = null;
+      router.push('/user/storylist');
     } catch (err) {
       console.log(err);
     }

@@ -18,7 +18,6 @@ const createStory = async () => {
     category: category.value,
     content: content.value,
   };
-
   try {
     const story = await storiesStore.createStory(newStory);
     console.log(story);

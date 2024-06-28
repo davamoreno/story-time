@@ -2,9 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { useRouter } from 'vue-router';
-import VueCropper from 'vue-cropperjs'
-import 'cropperjs/dist/cropper.css';
-import { url } from '@vee-validate/rules';
 
 const store = useAuthStore();
 const router = useRouter();
@@ -58,6 +55,22 @@ const updateProfile = async () => {
     }
 }
 
+const upload = async () => {
+    try {
+    const user = await store.userProfile.id;
+    if(image.value){
+      const newImage = new FormData();
+        newImage.append('files', image.value);
+        newImage.append('refId', user.id);
+        newImage.append('ref', 'plugin::users-permissions.user');
+        newImage.append('field', 'profile_picture');
+        await store.uploadUserPicture(newImage);
+    }   
+    } catch (error) {
+        
+    }
+}
+
 const togglePasswordForm = () => {
     showPasswordForm.value = !showPasswordForm.value;
 }
@@ -65,26 +78,29 @@ const toggleProfileForm = () => {
     showEditProfile.value = !showEditProfile.value;
 }
 
-const handleFileChange = (file: File) => {
-    image.value = file; 
+const handleFileChange = (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0] || null;
+  if (file) {
+    image.value = file;
     imageUrl.value = URL.createObjectURL(file);
-}
+  }
+};
 
-const handleCroppedImage = async () => {
-    if(cropper.value){
-        const croppedCanvas = cropper.value.getCropppedCanvas();
-        croppedCanvas.toBlop(async (blop) => {
-            if(blop){
-                try {
-                    await store.uploadUserPicture(blop);
-                    await store.userProfile();
-                } catch (error) {
-                    console.log(error);
-                }
-            }
-        })
-    }
-}
+// const handleCroppedImage = async () => {
+//     if(cropper.value){
+//         const croppedCanvas = cropper.value.getCropppedCanvas();
+//         croppedCanvas.toBlop(async (blop) => {
+//             if(blop){
+//                 try {
+//                     await store.uploadUserPicture(blop);
+//                     await store.userProfile();
+//                 } catch (error) {
+//                     console.log(error);
+//                 }
+//             }
+//         })
+//     }
+// }
 
 const cancelCrop = () => {
     showImageCropper.value = false;
@@ -119,14 +135,13 @@ const cancelCrop = () => {
                                             ? urlBase + store.userProfile?.profile_picture?.formats?.thumbnail?.url 
                                             : 'https://via.placeholder.com/150'" alt="">
                                         </div>
-                                        <fieldset class="form-group">
+                                        <form @submit.prevent="upload()" class="form-group">
                                             <div>
-                                                <label for="image-upload" class="btn btn-outline-primary btn-block w-100" data-bs-toggle="modal" data-bs-target="#cropper">Change Avatar</label>
-                                                <ui-base-input-img class="d-none" name="image" v-model="image" type="file" label=""
-                                                    identity="inputImage" @change="handleFileChange" 
+                                                <label for="image-upload" class="btn btn-outline-primary btn-block w-100">Change Avatar</label>
+                                                <input class="d-none" name="image" type="file" @change="handleFileChange" 
                                                 />
                                             </div>
-                                        </fieldset>
+                                        </form>
                                     </div>
                                 </div>
                                 <div class="col-lg-8" v-if="!showEditProfile">
@@ -240,7 +255,7 @@ const cancelCrop = () => {
         </section>
     </main>
 
-    <div class="modal mt-5" id="cropper" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <!-- <div class="modal mt-5" id="cropper" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -256,7 +271,7 @@ const cancelCrop = () => {
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 </template>
 
 <style lang="scss">

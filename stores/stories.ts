@@ -8,6 +8,7 @@ interface Story {
   title: string;
   createdAt: string;
   cover_image: {
+    id: number;
     url: string;
   };
   content: string;
@@ -15,6 +16,7 @@ interface Story {
     username: string;
   };
   category: {
+    id: number | string;
     name: string;
   };
 }
@@ -111,7 +113,6 @@ export const useStories = defineStore('stories', {
             Authorization: `Bearer ${useCookie('jwt').value}`,
           }
          });
-         console.log();
         this.stories.push(response.data.data);
         return response.data.data.id;
       } catch (error) {
@@ -135,8 +136,10 @@ export const useStories = defineStore('stories', {
       }
   },
 
-    async updateStory(id: number, updatedStory: Partial<Story>) {
-      const storyUrl = `https://storytime-api.strapi.timedoor-js.web.id/api/stories/${id}`
+    async updateStory(id: string | number, updatedStory: Partial<Story>) {
+      const storyUrl = `https://storytime-api.strapi.timedoor-js.web.id/api/stories/${id}`;
+      console.log(updatedStory);
+      
       try {
         const response = await axios.put<{ data: Story }>(storyUrl, { data: updatedStory }, {
           headers: {
@@ -166,19 +169,20 @@ export const useStories = defineStore('stories', {
         console.error('Error deleting story:', error)
       }
     },
-    async deleteImg(id: number,) {
+    async deleteImg(id: string) {
       try {
-        const imageId = this.storyList.cover_image.id;
+        const imageId = this.selectedStory?.cover_image.id;
         const imageUrl = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/upload/files/${imageId}`, {
           headers: {
             Authorization: `Bearer ${useCookie('jwt').value}`,
+            'Content-Type': 'multipart/form-data'
           }
         })
-        if (!imageId) {
+        if (!imageUrl) {
           console.warn('Tidak ada gambar yang ditemukan untuk cerita ini.');
           return;
       }
-      return imageUrl.data;
+      return imageUrl.data.data;
     } catch(err){
       throw new Error("error");
       

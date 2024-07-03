@@ -5,7 +5,7 @@ import { useAuthStore } from '~/stores/auth'
 const authStore = useAuthStore()
 
 const isLogin = computed(() => authStore.isLogin)
-// const userProfile = computed(() => authStore.userProfile)
+
 
 const login = async () => {
   await authStore.initialAuth()
@@ -15,8 +15,8 @@ const login = async () => {
 }
 await login()
 
-onMounted( async () => {
-  authStore.initialAuth()
+onMounted(() => {
+  authStore.getUserProfile();
 })
 </script>
 

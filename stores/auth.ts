@@ -8,7 +8,6 @@ export const useAuthStore = defineStore('auth', {
     isLogin: false,
     userProfile: {} as any,
   }),
-
   actions: {
     async initialAuth() {
       const cookieToken = useCookie('jwt')

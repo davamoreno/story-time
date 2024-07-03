@@ -135,23 +135,18 @@ a {
     transition: all .3s ease;
 }
 .story__favorite{
-    opacity: 0;
     position: absolute;
     font-size: 18px;
     top: 5px;
     right: 5px;
     background: #fff;
     padding: 7px;
-    border-radius: 50px;
+    border-radius: 10px;
     height: 40px;
     width: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    .btn:not(:disabled)
-    :not(.disabled) {
-    cursor: pointer;
-    }
 }
 .badge-secondary {
     background-color: #eee;

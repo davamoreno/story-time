@@ -169,7 +169,7 @@ export const useStories = defineStore('stories', {
         console.error('Error deleting story:', error)
       }
     },
-    async deleteImg(id: string) {
+    async deleteImg(id: number) {
       try {
         const imageId = this.selectedStory?.cover_image.id;
         const imageUrl = await axios.delete(`https://storytime-api.strapi.timedoor-js.web.id/api/upload/files/${imageId}`, {

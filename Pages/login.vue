@@ -33,21 +33,20 @@ const togglePasswordVisibility = () => {
 const login = handleSubmit( async (values) => {
     try{
         await store.getUserLogin(values);
-        await store.userProfile;
-        router.push('/')
+        navigateTo('/');
     }
     catch (err) {
         if(err instanceof Error){
-            errorMessage.value = err.message
+            errorMessage.value = err.message;
         }
         else{
-            errorMessage.value = "An unknown error occured."
+            errorMessage.value = "An unknown error occured.";
         }
     }
 });
 
-onMounted(handleSubmit((values) => {
-    store.getUserLogin(values);
+onMounted(handleSubmit( async (values) => {
+    await store.getUserLogin(values);
 }));
 
 </script>

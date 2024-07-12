@@ -32,11 +32,6 @@ export default defineNuxtConfig({
       }
     }
   },
-
-  plugins: [
-    '@/plugins/vee-validate.ts', '@/plugins/fontawesome.ts' , '@/plugins/pinia.ts',
-  ],
-
   pages: true,
   compatibilityDate: "2024-07-12",
 });

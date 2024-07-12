@@ -20,16 +20,7 @@ export default defineNuxtConfig({
   },
 
   components: true,
-  css:['bootstrap/dist/css/bootstrap.min.css',  '@/assets/styles/main.scss'],
-
-  build: {
-    loaders: {
-      scss: {
-        implementation: require('sass')
-      }
-    }
-  },
-
+  css:['@/assets/styles/main.scss'],
   vite: {
     css: {
       preprocessorOptions: {
@@ -43,7 +34,7 @@ export default defineNuxtConfig({
   },
 
   plugins: [
-    '~/plugins/vee-validate.ts', '~/plugins/fontawesome.ts' , '~/plugins/pinia.ts',
+    '@/plugins/vee-validate.ts', '@/plugins/fontawesome.ts' , '@/plugins/pinia.ts',
   ],
 
   pages: true,

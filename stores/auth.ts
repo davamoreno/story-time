@@ -1,19 +1,15 @@
 import { defineStore } from 'pinia'
 import { useCookie } from '#app'
 import axios from 'axios'
+import { useStories } from './stories'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: null as string | null,
     isLogin: false,
-    bookmarks : [] as any,
     userProfile: {} as any,
+    stories: useStories(),
   }),
-  getters:{
-    isBookmarked: (state) => (id:any) => {
-        return state.bookmarks.some(item => item.id === id);
-    }
-  },
   actions: {
     async initialAuth() {
       const cookieToken = useCookie('jwt');
@@ -58,8 +54,8 @@ export const useAuthStore = defineStore('auth', {
           identifier: payload.identifier,
           password: payload.password,
         })
-        this.token = response.data.data.jwt
-        this.isLogin = true
+        this.token = response.data.data.jwt;
+        this.isLogin = true;
         const cookieToken = useCookie('jwt')
         cookieToken.value = this.token
       } catch (err) {
@@ -85,6 +81,7 @@ export const useAuthStore = defineStore('auth', {
             },
           })
           this.userProfile = response.data.data;
+          this.stories.loadBookmarks();
         } catch (err) {
           console.log("Get Profile Error:", err)
         }
@@ -121,37 +118,5 @@ export const useAuthStore = defineStore('auth', {
           throw new Error("Error", err);
         }
       },
-
-      toogleBookmark(story : any){
-        const index = this.bookmarks.findIndex(item => item.id === story.id);
-        if (index === -1) {
-            this.bookmarks.push(story);
-        }
-        else{
-            this.bookmarks.splice(index, 1);
-        }
-        this.saveBookmarks();
-      },
-
-      saveBookmarks(){
-        const token = useCookie('jwt').value;
-        if(token){
-            const userId = this.userProfile.id;
-            localStorage.setItem(`bookmarks_${userId}`, JSON.stringify(this.bookmarks));
-        }
-      },
-
-      loadBookmars(){
-        const userId = this.userProfile.id;
-        const savedBookmarks = localStorage.getItem(`bookmarks_${userId}`);
-        if (savedBookmarks) {
-            this.bookmarks = JSON.parse(savedBookmarks);
-        }
-      },
-      
-      clearBookmarks(){
-        const userId = this.userProfile.id;
-        localStorage.removeItem(`bookmarks_${userId}`)
-      }
   },
 })

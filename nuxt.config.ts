@@ -5,6 +5,7 @@ import { errorMessages } from "vue/compiler-sfc";
 export default defineNuxtConfig({
   devtools: { enabled : true},
   ssr: true,
+
   app:{
     head:{
       script:[{
@@ -13,11 +14,14 @@ export default defineNuxtConfig({
       }]
     }
   },
+
   alias:{
     assets:"/<rootDir>/assets",
   },
+
   components: true,
   css:['bootstrap/dist/css/bootstrap.min.css',  '@/assets/styles/main.scss'],
+
   build: {
     loaders: {
       scss: {
@@ -25,6 +29,7 @@ export default defineNuxtConfig({
       }
     }
   },
+
   vite: {
     css: {
       preprocessorOptions: {
@@ -36,8 +41,11 @@ export default defineNuxtConfig({
       }
     }
   },
+
   plugins: [
     '~/plugins/vee-validate.ts', '~/plugins/fontawesome.ts' , '~/plugins/pinia.ts',
   ],
+
   pages: true,
+  compatibilityDate: "2024-07-12",
 });

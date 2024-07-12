@@ -37,6 +37,7 @@ interface StoryState {
   sort: string | null;
   page: number;
   pageCount: number;
+  bookmarks : [],
 }
 
 export const useStories = defineStore('stories', {
@@ -48,9 +49,17 @@ export const useStories = defineStore('stories', {
     keyword: '',
     sort: '',
     page: 1,
-    pageCount: 1
+    pageCount: 1,
+    bookmarks : [],
   }),
-
+  getters:{
+    isBookmarked: (state) => (id:any) => {
+        return state.bookmarks.some(item => item.id === id);
+    },
+    getBookmarks: (state) => {
+      return state.bookmarks;
+    }
+  },
   actions: {
     async fetchStories(payload: any) {
       const {page,sort,keyword,author} = payload
@@ -189,16 +198,52 @@ export const useStories = defineStore('stories', {
     }
   },
 
-    resetSelectedStory() {
-      this.selectedStory = null
-    },
-
-    setKeyword(newKeyword: string) {
-      this.fetchStories(newKeyword)
-    },
-
-    setSortBy(newSortBy: string) {
-      this.fetchStories(newSortBy)
+  toogleBookmark(story : any){
+    console.log('click');
+    
+    const index = this.bookmarks.findIndex(item => item.id === story.id);
+      if (index === -1){
+        this.bookmarks.push(story);
+        console.log("aaa");
     }
+    else{
+        this.bookmarks.splice(index, 1);
+        console.log("bbb");
+        
+      }
+    this.saveBookmarks();
+  },
+
+  saveBookmarks(){
+    const token = useCookie('jwt').value;
+    if(token){
+      const userId = this.user.userProfile;
+      console.log("saved", userId);
+      localStorage.setItem(`bookmarks_${userId}`, JSON.stringify(this.bookmarks));
+    }
+  },
+
+  loadBookmarks(){
+    const userId = this.user.userProfile;
+    const savedBookmarks = localStorage.getItem(`bookmarks_${userId}`);
+    if (savedBookmarks) {
+        this.bookmarks = JSON.parse(savedBookmarks);
+    }
+  },
+  
+  clearBookmarks(){
+    const userId = this.user.userProfile;
+    localStorage.removeItem(`bookmarks_${userId}`);
+  },
+
+  resetSelectedStory() {
+    this.selectedStory = null
+  },
+  setKeyword(newKeyword: string) {
+    this.fetchStories(newKeyword)
+  },
+  setSortBy(newSortBy: string) {
+    this.fetchStories(newSortBy)
   }
+}
 })

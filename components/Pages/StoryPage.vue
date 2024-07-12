@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useStories } from '~/stores/stories'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStories } from '~/stores/stories';
+import { useAuthStore } from '~/stores/auth';
 
 const baseUrl = "https://storytime-api.strapi.timedoor-js.web.id/";
 
 const storyStore = useStories();
+const auth = useAuthStore();
+const router = useRouter();
 
 const stories = computed(() => storyStore.stories);
 const hasMore = computed(() => {
@@ -51,6 +55,17 @@ onMounted(() => {
   storyStore.fetchStories(payload)
 })
 
+const isBookmarked = (id : any) => {
+  return storyStore.isBookmarked(id);
+}
+
+const toggleBookmark = (item : any) => {
+    if(!auth.getUserLogin){
+      router.push('/login');
+    }else{
+      storyStore.toogleBookmark(item);
+    }
+}
 
 function formatDate(time: string) {
   const date = new Date(time);
@@ -91,23 +106,25 @@ function formatDate(time: string) {
           </div>
         </div>
         <div class="row">
-          <div class="col-6 col-lg-3 mb-25px" v-for="story in stories" :key="story.id">
+          <div class="col-6 col-lg-3 mb-25px" v-for="(item, index) in stories" :key="index">
             <div class="story h-100">
-              <NuxtLink :to="`/details/${story.id}`" class="story__image">
-                <img v-if="story.cover_image" :src="baseUrl + story.cover_image.url" alt="" class="img-fluid">
+              <NuxtLink :to="`/details/${item.id}`" class="story__image">
+                <img v-if="item.cover_image" :src="baseUrl + item.cover_image.url" alt="" class="img-fluid">
               </NuxtLink>
               <div class="story__info">
-                <NuxtLink :to="`/details/${story.id}`">
-                  <h2 class="story__title">{{ story.title }}</h2>
+                <NuxtLink :to="`/details/${item.id}`">
+                  <h2 class="story__title">{{ item.title }}</h2>
                 </NuxtLink>
-                <p class="story__desc">{{ story.content }}</p>
+                <p class="story__desc">{{ item.content }}</p>
                 <div class="story__footer">
-                  <p class="story__sub-info" v-if="story.author?.username">by {{ story.author?.username }}</p>
-                  <p class="story__sub-info">{{ formatDate(story.createdAt) }}</p>
-                  <button class="btn story__favorite shadow"><i class="fa-regular fa-bookmark"></i></button>
+                  <p class="story__sub-info" v-if="item.author?.username">by {{ item.author?.username }}</p>
+                  <p class="story__sub-info">{{ formatDate(item.createdAt) }}</p>
+                  <button class="btn story__favorite shadow" @click="toggleBookmark(item)">
+                    <i :class="['fa-regular fa-bookmark', isBookmarked(item.id) ? 'fa-solid' : 'fa-bookmark']"></i>
+                  </button>
                 </div>
                 <div class="story__footer">
-                  <span class="m badge badge-secondary" v-if="story.category">{{ story.category.name }}</span>
+                  <span class="m badge badge-secondary" v-if="item.category">{{ item.category.name }}</span>
                 </div>
               </div>
             </div>

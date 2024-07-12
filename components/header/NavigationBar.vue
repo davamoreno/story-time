@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useAuthStore } from '~/stores/auth'
+import { computed, onMounted } from 'vue';
+import { useAuthStore } from '~/stores/auth';
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
-const isLogin = computed(() => authStore.isLogin)
+const isLogin = computed(() => authStore.isLogin);
 
 
 const login = async () => {
-  await authStore.initialAuth()
+  await authStore.initialAuth();
   if (authStore.isLogin) {
-    await authStore.getUserProfile()
+    await authStore.getUserProfile();
   }
 }
 await login()

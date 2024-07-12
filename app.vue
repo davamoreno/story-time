@@ -7,7 +7,12 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from './stores/auth';
+import { useStories } from './stores/stories';
 const layout = "default";
+
+const auth = useAuthStore();
+const stories = useStories();
 
 const { $bs } = useNuxtApp();
 
@@ -18,6 +23,11 @@ onMounted(() => {
   } catch (e) {
     console.log('Bootstrap error: ', e);
   }
+});
+
+onMounted(async () => {
+    await auth.initialAuth();
+    stories.loadBookmarks();
 });
 </script>
 
